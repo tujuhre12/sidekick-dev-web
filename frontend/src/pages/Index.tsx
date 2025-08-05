@@ -97,7 +97,7 @@ const Index = () => {
                   placeholder="https://github.com/username/repository"
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
-                  className="pl-10 h-12 bg-white/50 border-white/20 focus:border-primary/50 focus:ring-primary/20"
+                  className="pl-10 h-12 bg-white border-gray-200 focus:border-primary focus:ring-primary/20 text-foreground"
                 />
               </div>
             </div>
@@ -114,7 +114,7 @@ const Index = () => {
                     className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:scale-105 ${
                       selectedAgents.includes(agent.id)
                         ? 'border-primary bg-primary/10 shadow-glow'
-                        : 'border-white/20 bg-white/30 hover:border-primary/30'
+                        : 'border-gray-200 bg-white hover:border-primary/50'
                     }`}
                     onClick={() => handleAgentToggle(agent.id)}
                   >
@@ -124,7 +124,7 @@ const Index = () => {
                       className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
                     <span className="text-sm font-bold bg-primary/20 px-2 py-1 rounded">{agent.icon}</span>
-                    <span className={`font-medium ${agent.color}`}>
+                    <span className="font-medium text-foreground">
                       {agent.name}
                     </span>
                   </div>
@@ -174,7 +174,7 @@ const Index = () => {
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-muted-foreground">
           <p>
-            ✨ Made by <a href="https://github.com/saharmor" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Sahar Mor</a>  
+                         Made by <a href="https://github.com/saharmor" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Sahar Mor</a>  
           </p>
         </div>
       </div>
