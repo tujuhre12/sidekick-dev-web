@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Test Sidekick Code API",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/test_api.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/backend"
+            }
+        },
+        {
+            "name": "Start Sidekick Code Backend",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/run.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/backend",
+                "PORT": "8000",
+                "HOST": "0.0.0.0",
+                "DEBUG": "true"
+            }
+        }
+    ]
+}
