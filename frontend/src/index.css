@@ -45,7 +45,7 @@
 
     /* Subtle, readable gradients */
     --gradient-dreamy: linear-gradient(135deg, hsl(200 50% 85%) 0%, hsl(220 40% 90%) 25%, hsl(185 30% 92%) 50%, hsl(200 35% 88%) 75%, hsl(210 40% 85%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(0 0% 98%) 0%, hsl(200 20% 96%) 50%, hsl(210 15% 94%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(330 45% 94%) 0%, hsl(320 50% 92%) 25%, hsl(295 40% 93%) 50%, hsl(275 45% 91%) 75%, hsl(260 35% 93%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.95) 0%, hsl(200 15% 98% / 0.9) 100%);
 
     /* Subtle shadows */
@@ -157,6 +157,10 @@
   .animate-pulse-slow {
     animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+  
+  .animate-fade-in-gentle {
+    animation: fade-in-gentle 1.5s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -194,5 +198,20 @@
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+@keyframes fade-in-gentle {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(0.95);
   }
 }

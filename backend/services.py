@@ -9,6 +9,37 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Global DeepWiki client instance - initialized once at startup
+_global_deepwiki_client: DeepWikiClient = None
+
+def get_deepwiki_client() -> DeepWikiClient:
+    """Get the global DeepWiki client instance."""
+    global _global_deepwiki_client
+    if _global_deepwiki_client is None:
+        raise RuntimeError("DeepWiki client not initialized. Call initialize_deepwiki_client() first.")
+    return _global_deepwiki_client
+
+def initialize_deepwiki_client():
+    """Initialize the global DeepWiki client instance."""
+    global _global_deepwiki_client
+    if _global_deepwiki_client is None:
+        logger.info("Initializing global DeepWiki client...")
+        _global_deepwiki_client = DeepWikiClient(auto_initialize=True)
+        if _global_deepwiki_client.is_initialized:
+            logger.info("Global DeepWiki client initialized successfully")
+        else:
+            logger.error("Failed to initialize global DeepWiki client")
+    else:
+        logger.info("Global DeepWiki client already initialized")
+
+def close_deepwiki_client():
+    """Close the global DeepWiki client instance."""
+    global _global_deepwiki_client
+    if _global_deepwiki_client is not None:
+        _global_deepwiki_client.close()
+        _global_deepwiki_client = None
+        logger.info("Global DeepWiki client closed")
+
 def customize_markdown_for_agent(markdown: str, agent: str) -> str:
     """
     Customize markdown content for specific agents.
@@ -16,7 +47,7 @@ def customize_markdown_for_agent(markdown: str, agent: str) -> str:
     
     Args:
         markdown: The base markdown content
-        agent: The target agent (claude, cursor, windsurf, gemini)
+        agent: The target agent (claude, cursor, windsurf, gemini, cline, bolt, vscode, intellij, lovable)
         
     Returns:
         Customized markdown content
@@ -38,18 +69,18 @@ def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tupl
         error_message: Error message if generation failed, None if successful
     """
     try:
-        # Initialize DeepWiki client
-        deepwiki_client = DeepWikiClient()
+        # Get the global DeepWiki client
+        deepwiki_client = get_deepwiki_client()
         
         if not deepwiki_client.is_initialized:
-            return {}, "Failed to initialize DeepWiki client"
+            return {}, "DeepWiki client is not initialized"
         
         # Query DeepWiki with the universal prompt
         logger.info(f"Generating context for repository: {github_url}")
         response = deepwiki_client.query(github_url, UNIVERSAL_PROMPT_TEMPLATE)
         
         # Check for errors in response
-        if response.startswith("DeepWiki error:") or response.startswith("Error"):
+        if response.raw_response.startswith("DeepWiki error:") or response.raw_response.startswith("Error"):
             return {}, f"DeepWiki query failed: {response}"
         
         if not response or response.strip() == "":
@@ -74,8 +105,7 @@ def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tupl
             
             logger.info(f"Generated {filename} for {AGENT_CONFIG[agent]['name']}")
         
-        # Close DeepWiki client
-        deepwiki_client.close()
+        # Note: We don't close the global client here as it's reused across requests
         
         return files, None
         
