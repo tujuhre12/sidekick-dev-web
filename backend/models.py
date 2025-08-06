@@ -41,6 +41,10 @@ class GenerateResponse(BaseModel):
     message: str
     download_url: str = None
     files_generated: List[str] = []
+    view_search_url: str = None
+    file_content: str = None
+    filename: str = None
+    is_zip: bool = False
 
 class ErrorResponse(BaseModel):
     """Response model for errors."""
