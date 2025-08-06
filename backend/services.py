@@ -55,7 +55,7 @@ def customize_markdown_for_agent(markdown: str, agent: str) -> str:
     # Future: Apply agent-specific formatting here
     return markdown
 
-def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tuple[Dict[str, str], str]:
+def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tuple[Dict[str, str], str, str]:
     """
     Generate markdown files for the selected agents.
     
@@ -64,27 +64,31 @@ def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tupl
         selected_agents: List of selected agent IDs
         
     Returns:
-        Tuple of (files_dict, error_message)
+        Tuple of (files_dict, error_message, view_search_url)
         files_dict: Dictionary mapping filenames to content
         error_message: Error message if generation failed, None if successful
+        view_search_url: URL for follow-up questions on DeepWiki, None if not available
     """
     try:
         # Get the global DeepWiki client
         deepwiki_client = get_deepwiki_client()
         
         if not deepwiki_client.is_initialized:
-            return {}, "DeepWiki client is not initialized"
+            return {}, "DeepWiki client is not initialized", None
         
         # Query DeepWiki with the universal prompt
         logger.info(f"Generating context for repository: {github_url}")
-        response = deepwiki_client.query(github_url, UNIVERSAL_PROMPT_TEMPLATE)
+        deepwiki_response = deepwiki_client.query(github_url, UNIVERSAL_PROMPT_TEMPLATE)
         
         # Check for errors in response
-        if response.raw_response.startswith("DeepWiki error:") or response.raw_response.startswith("Error"):
-            return {}, f"DeepWiki query failed: {response}"
+        if deepwiki_response.raw_response.startswith("DeepWiki error:") or deepwiki_response.raw_response.startswith("Error"):
+            return {}, f"DeepWiki query failed: {deepwiki_response.response}", None
         
-        if not response or response.strip() == "":
-            return {}, "Empty response from DeepWiki"
+        if not deepwiki_response.response or deepwiki_response.response.strip() == "":
+            return {}, "Empty response from DeepWiki", None
+        
+        # Extract the view search URL from the response
+        view_search_url = deepwiki_response.view_search_url
         
         # Generate files for each selected agent
         files = {}
@@ -94,7 +98,7 @@ def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tupl
                 continue
             
             # Customize content for the specific agent
-            customized_content = customize_markdown_for_agent(response, agent)
+            customized_content = customize_markdown_for_agent(deepwiki_response.response, agent)
             
             # Add footer
             final_content = customized_content + FOOTER_TEMPLATE
@@ -107,11 +111,11 @@ def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tupl
         
         # Note: We don't close the global client here as it's reused across requests
         
-        return files, None
+        return files, None, view_search_url
         
     except Exception as e:
         logger.error(f"Error generating markdown files: {str(e)}")
-        return {}, f"Internal error: {str(e)}"
+        return {}, f"Internal error: {str(e)}", None
 
 def create_zip_file(files: Dict[str, str]) -> bytes:
     """
