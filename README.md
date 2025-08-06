@@ -1,95 +1,76 @@
-# Sidekick Code - AI-Powered Coding Context Generator
+# Sidekick Code
 
-🤖 Automatically generate high-quality markdown context files for coding agents like Claude Code, Cursor, Windsurf, and Gemini.
+Automatically generate high-quality markdown context files for AI coding agents like Claude, Cursor, Windsurf, and Gemini by analyzing any public GitHub repository.
 
-## 🌟 Features
+## Features
 
-- **Multi-Agent Support**: Generate context files for Claude Code, Cursor, Windsurf, and Gemini
-- **GitHub Integration**: Analyze any public GitHub repository  
-- **Smart Packaging**: Single file download or ZIP archive for multiple agents
-- **AI-Powered**: Uses DeepWiki's MCP interface for intelligent repository analysis
-- **Beautiful UI**: Modern, responsive interface built with React and Tailwind CSS
-- **Fast & Reliable**: Optimized backend with persistent MCP sessions
+- **Multi-Agent Support**: Generate context files optimized for Claude, Cursor, Windsurf, and Gemini
+- **GitHub Integration**: Analyze any public GitHub repository using DeepWiki's AI-powered analysis
+- **Smart Packaging**: Download single markdown files or ZIP archives for multiple agents
+- **Real-time Progress**: Visual progress tracking with detailed generation steps
+- **Error Handling**: Clear feedback for private repositories and indexing issues
+- **Modern UI**: Responsive React interface with Tailwind CSS styling
 
-## 🚀 Quick Start
+## Quick Start
 
-### Option 1: One-Command Development Setup
+### One-Command Setup
 
 ```bash
-# Clone the repository
+# Clone and start both frontend and backend
 git clone https://github.com/saharmor/sidekick-code-web.git
 cd sidekick-code-web
-
-# Start both frontend and backend
 ./start-dev.sh
 ```
 
-This will:
-- Set up Python virtual environment for backend
-- Install all dependencies
-- Start backend server on http://localhost:8000
-- Start frontend server on http://localhost:5173
+This automatically sets up the Python virtual environment, installs dependencies, and starts:
+- Backend server: http://localhost:8000
+- Frontend server: http://localhost:5173
 
-### Option 2: Manual Setup
+### Manual Setup
 
-#### Backend Setup
-
+**Backend Setup:**
 ```bash
 cd backend
-
-# Create and activate virtual environment
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-# Copy environment configuration
-cp .env.example .env
-
-# Start the server
 python run.py
 ```
 
-#### Frontend Setup
-
+**Frontend Setup:**
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-## 🏗️ Architecture
+## Architecture
 
-### Frontend (React + Vite)
-- **Framework**: React with TypeScript
-- **Styling**: Tailwind CSS with custom animations
-- **UI Components**: shadcn/ui component library
-- **Build Tool**: Vite for fast development and builds
-- **Hosting**: Designed for GitHub Pages deployment
+**Frontend (React + Vite)**
+- React 18 with TypeScript
+- Vite for development and building
+- Tailwind CSS + shadcn/ui components
+- React Query for state management
+- React Router for navigation
 
-### Backend (FastAPI)
-- **Framework**: FastAPI with Python 3.8+
-- **AI Integration**: DeepWiki MCP client for repository analysis
-- **File Processing**: Automatic markdown generation and ZIP creation
-- **Deployment**: Ready for Render, Railway, or Docker
+**Backend (FastAPI)**
+- FastAPI with Python 3.8+
+- Pydantic for request/response validation
+- DeepWiki MCP client for repository analysis
+- Automatic markdown generation and ZIP packaging
 
-### DeepWiki Integration
-- **Endpoint**: https://mcp.deepwiki.com/mcp
-- **Protocol**: Model Context Protocol (MCP) for AI communication
-- **Features**: Repository analysis, code pattern extraction, documentation generation
+**DeepWiki Integration**
+- Model Context Protocol (MCP) for AI communication
+- Persistent session management for performance
+- Intelligent repository analysis and documentation generation
 
-## 📋 API Reference
+## API Reference
 
 ### POST /api/generate
 
-Generate context files for a GitHub repository.
+Generates context files for a GitHub repository.
 
-**Request:**
+**Request Body:**
 ```json
 {
   "github_url": "https://github.com/owner/repo",
@@ -98,121 +79,116 @@ Generate context files for a GitHub repository.
 ```
 
 **Response:**
-- Single agent: Direct markdown file download
-- Multiple agents: ZIP archive download
+- Single agent: Returns file content directly
+- Multiple agents: Returns base64-encoded ZIP archive
 
-**Agent Mappings:**
-- `claude` → `claude.md`
-- `cursor` → `project_general.md` 
-- `windsurf` → `windsurf.md`
-- `gemini` → `gemini.md`
+**Generated Filenames:**
+- Claude → `claude.md`
+- Cursor → `project_general.md`
+- Windsurf → `windsurf.md`
+- Gemini → `gemini.md`
 
-## 🧪 Testing
+### GET /health
 
-### Test the Backend API
+Health check endpoint for monitoring backend status.
 
+## Testing
+
+**Backend API:**
 ```bash
 # Health check
 curl http://localhost:8000/health
 
 # Generate context file
-curl -X POST "http://localhost:8000/api/generate" \
+curl -X POST http://localhost:8000/api/generate \
   -H "Content-Type: application/json" \
-  -d '{
-    "github_url": "https://github.com/octocat/Hello-World",
-    "selected_agents": ["claude"]
-  }' \
-  --output claude.md
+  -d '{"github_url":"https://github.com/octocat/Hello-World","selected_agents":["claude"]}'
 ```
 
-### Frontend Testing
-1. Open http://localhost:5173
+**Frontend:**
+1. Navigate to http://localhost:5173
 2. Enter a GitHub repository URL
-3. Select one or more target agents
+3. Select target agents
 4. Click "Generate & Download"
 
-## 🚀 Deployment
+## Deployment
 
-### Frontend (GitHub Pages)
-
+**Frontend (GitHub Pages):**
 ```bash
 cd frontend
 npm run build
 # Deploy dist/ folder to GitHub Pages
 ```
 
-### Backend (Render)
+**Backend (Render/Railway):**
+- Build: `cd backend && pip install -r requirements.txt`
+- Start: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
+- Environment: Set `DEBUG=false` and `CORS_ORIGINS`
 
-1. Connect your GitHub repository to Render
-2. Set environment variables:
-   - `DEBUG=false`
-   - `CORS_ORIGINS=https://yourdomain.github.io`
-3. Build command: `cd backend && pip install -r requirements.txt`
-4. Start command: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
-
-### Docker Deployment
-
+**Docker:**
 ```bash
 cd backend
 docker build -t sidekick-code-api .
 docker run -p 8000:8000 sidekick-code-api
 ```
 
-## 🔧 Configuration
+## Configuration
 
-### Backend Environment Variables
-
+**Backend (.env):**
 ```bash
-DEBUG=false                     # Enable/disable debug mode
-CORS_ORIGINS=https://yourdomain.com  # Allowed frontend origins
-HOST=0.0.0.0                   # Server host
-PORT=8000                      # Server port
-DEEPWIKI_TIMEOUT=60            # DeepWiki request timeout
+DEBUG=false                    # Enable debug mode and API docs
+CORS_ORIGINS=http://localhost:5173  # Allowed frontend origins
+DEEPWIKI_TIMEOUT=60           # DeepWiki request timeout seconds
 ```
 
-### Frontend Environment Variables
-
+**Frontend (.env.local):**
 ```bash
-VITE_API_URL=https://your-backend.render.com  # Backend API URL
+VITE_API_URL=https://your-backend.render.com  # Custom backend URL
 ```
 
-## 🤝 Contributing
+## Generated Context Files
+
+Each markdown file provides comprehensive project context including:
+
+- Project overview and architecture
+- Development setup and dependencies
+- Code organization and patterns
+- Testing strategies and deployment
+- Common troubleshooting solutions
+
+## Technology Stack
+
+**Frontend Dependencies:**
+- React 18.3+ with TypeScript
+- Vite 5.4+ for building
+- Tailwind CSS for styling
+- shadcn/ui component library
+- React Query for data fetching
+
+**Backend Dependencies:**
+- FastAPI for web framework
+- Pydantic for validation
+- Requests for HTTP calls
+- Python-dotenv for configuration
+
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -m 'Add new feature'`
+4. Push to branch: `git push origin feature/new-feature`
+5. Open Pull Request
 
-## 📝 Generated Context File Structure
+## License
 
-Each generated markdown file includes:
+MIT License - see [LICENSE](LICENSE) file for details.
 
-- **Project Overview**: Purpose, goals, and target audience
-- **Architecture & Structure**: System design and component organization
-- **Development Setup**: Installation and configuration instructions
-- **Code Organization**: Standards, patterns, and conventions
-- **Key Features**: Implementation details and business logic
-- **Testing Strategy**: Framework and best practices
-- **Build & Deployment**: Process and configuration
-- **Git Workflow**: Branching and release process
-- **Common Patterns**: Recurring code patterns and best practices
-- **Dependencies**: Key libraries and tools
-- **Security**: Authentication and validation approaches
-- **Troubleshooting**: Common issues and solutions
+## Acknowledgments
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **DeepWiki**: For providing the MCP interface for repository analysis
-- **shadcn/ui**: For the beautiful React component library
-- **FastAPI**: For the high-performance Python web framework
+- [DeepWiki](https://deepwiki.com) for AI-powered repository analysis
+- [shadcn/ui](https://ui.shadcn.com) for React components
+- [FastAPI](https://fastapi.tiangolo.com) for Python web framework
 
 ---
 
-**Made with ❤️ by [Sahar Mor](https://github.com/saharmor)**
-
-For questions or support, please open an issue or reach out on GitHub.
+Built by [Sahar Mor](https://github.com/saharmor) | [Clone on GitHub](https://github.com/saharmor/sidekick-code-web)
