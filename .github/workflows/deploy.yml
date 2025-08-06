@@ -31,6 +31,8 @@ jobs:
       env:
         # TODO: Replace with your production backend URL when ready
         VITE_API_URL: https://your-backend-domain.com
+        # Set to true when using a custom domain (sidekickcode.xyz)
+        GITHUB_PAGES_CUSTOM_DOMAIN: true
         
     - name: Setup Pages
       if: github.ref == 'refs/heads/main'
