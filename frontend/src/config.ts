@@ -1,12 +1,15 @@
 /**
- * Configuration constants for the Sidekick Code frontend
+ * Configuration constants for the Sidekick Dev frontend
  */
 
 // API base URL - defaults to local development, can be overridden with environment variable
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Repository URL - centralized location for all references
-export const REPO_URL = "https://github.com/saharmor/sidekick-code-web";
+export const REPO_URL = "https://github.com/saharmor/sidekick-dev-web";
+
+// Google Analytics configuration
+export const GOOGLE_ANALYTICS_ID = import.meta.env.VITE_GA_MEASUREMENT_ID || '';
 
 // API endpoints
 export const API_ENDPOINTS = {

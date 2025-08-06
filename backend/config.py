@@ -1,10 +1,10 @@
-"""Configuration settings for the Sidekick Code backend."""
+"""Configuration settings for the Sidekick Dev backend."""
 
 import os
 from typing import Dict
 
 # Repository URL - centralized location for all references
-REPO_URL = "https://github.com/saharmor/sidekick-code-web"
+REPO_URL = "https://github.com/saharmor/sidekick-dev-web"
 
 # Agent configuration mapping
 AGENT_CONFIG: Dict[str, Dict[str, str]] = {
@@ -192,7 +192,7 @@ Your redirects prevent over-engineering. When uncertain about implementation, st
 Focus on maintainable solutions over clever abstractions.
 
 ---
-Generated using [Sidekick Code]({REPO_URL}), your coding agent sidekick.
+Generated using [Sidekick Dev]({REPO_URL}), your coding agent sidekick.
 """
 
 # Environment variables

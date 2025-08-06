@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Test Sidekick Code API",
+            "name": "Test Sidekick Dev API",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/backend/test_api.py",
@@ -14,7 +14,7 @@
             }
         },
         {
-            "name": "Start Sidekick Code Backend",
+            "name": "Start Sidekick Dev Backend",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/backend/run.py",

@@ -1,6 +1,6 @@
-# Sidekick Code Backend
+# Sidekick Dev Backend
 
-FastAPI backend for Sidekick Code - automatically generate high-quality markdown context files for coding agents.
+FastAPI backend for Sidekick Dev - automatically generate high-quality markdown context files for coding agents.
 
 ## Features
 

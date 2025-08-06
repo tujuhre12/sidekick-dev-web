@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Sidekick Code Development Startup Script
+# Sidekick Dev Development Startup Script
 # This script starts both the frontend and backend for local development
 
-echo "🚀 Starting Sidekick Code Development Environment..."
+echo "🚀 Starting Sidekick Dev Development Environment..."
 
 # Check if Python is installed
 if ! command -v python3 &> /dev/null; then

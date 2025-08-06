@@ -496,7 +496,7 @@ const Index = () => {
           <div className="flex items-center justify-center gap-4 mb-5">
             <Sparkles className="w-10 h-10 text-primary" />
             <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
-              Sidekick Code
+              Sidekick Dev
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -507,7 +507,7 @@ const Index = () => {
         {/* Powered by DeepWiki */}
         <div className="text-center mb-10">
           <a 
-            href="https://deepwiki.com?utm_source=sidekickcode.dev" 
+                          href="https://deepwiki.com?utm_source=sidekickdev.com" 
             target="_blank" 
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-1 transition-transform duration-300 hover:translate-x-0.5"
@@ -811,7 +811,7 @@ const Index = () => {
                             <p className="text-sm text-blue-700 mb-3">
                               Ask specific questions about the codebase, architecture, or implementation details on{' '}
                               <a
-                                href={`https://deepwiki.com/${username}/${repo}?utm_source=sidekickcode.dev`}
+                                href={`https://deepwiki.com/${username}/${repo}?utm_source=sidekickdev.com`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center space-x-1 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"

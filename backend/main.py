@@ -1,4 +1,4 @@
-"""FastAPI backend for Sidekick Code - AI-powered coding context generator."""
+"""FastAPI backend for Sidekick Dev - AI-powered coding context generator."""
 
 import os
 import tempfile
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
-    title="Sidekick Code API",
+    title="Sidekick Dev API",
     description="Automatically generate high-quality markdown context files for coding agents",
     version="1.0.0",
     docs_url="/docs" if DEBUG else None,
@@ -51,12 +51,12 @@ async def shutdown_event():
 @app.get("/")
 async def root():
     """Health check endpoint."""
-    return {"message": "Sidekick Code API is running", "version": "1.0.0"}
+    return {"message": "Sidekick Dev API is running", "version": "1.0.0"}
 
 @app.get("/health")
 async def health():
     """Health check endpoint for monitoring."""
-    return {"status": "healthy", "service": "sidekick-code-api"}
+    return {"status": "healthy", "service": "sidekick-dev-api"}
 
 @app.post("/api/generate", response_model=GenerateResponse)
 async def generate_context_files(request: GenerateRequest):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple test script to verify the Sidekick Code API is working correctly.
+Simple test script to verify the Sidekick Dev API is working correctly.
 """
 
 import requests
@@ -110,7 +110,7 @@ def test_validation():
 
 def main():
     """Run all tests."""
-    print("🧪 Starting Sidekick Code API Tests")
+    print("🧪 Starting Sidekick Dev API Tests")
     print("=" * 50)
     
     # Check if server is running

@@ -21,5 +21,5 @@ export default defineConfig(({ mode }) => ({
   },
   // Configure for GitHub Pages deployment
   // Use root path for custom domain, subdirectory for GitHub Pages subdomain
-  base: mode === 'production' ? (process.env.GITHUB_PAGES_CUSTOM_DOMAIN ? '/' : '/sidekick-code-web/') : '/',
+      base: mode === 'production' ? (process.env.GITHUB_PAGES_CUSTOM_DOMAIN ? '/' : '/sidekick-dev-web/') : '/',
 }));

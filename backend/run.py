@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Development server runner for Sidekick Code backend.
+Development server runner for Sidekick Dev backend.
 """
 
 import os
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     debug = os.getenv("DEBUG", "true").lower() == "true"
     
-    print(f"Starting Sidekick Code API server...")
+    print(f"Starting Sidekick Dev API server...")
     print(f"   Host: {host}")
     print(f"   Port: {port}")
     print(f"   Debug: {debug}")

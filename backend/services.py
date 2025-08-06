@@ -1,4 +1,4 @@
-"""Business logic services for the Sidekick Code backend."""
+"""Business logic services for the Sidekick Dev backend."""
 
 import io
 import zipfile
