@@ -1,9 +1,9 @@
-📄 Project Overview: DeepCode
+📄 Project Overview: Sidekick Dev
 Goal:
 Automatically generate high-quality markdown context files for coding agents like Claude Code, Cursor, Windsurf, and Gemini. These files enhance the performance of coding agents by providing curated context about a GitHub repository.
 
 Use case:
-Developers often spend significant time manually creating claude.md, project_general.md, etc., to improve results inside their AI coding IDEs. DeepCode eliminates this manual work by using DeepWiki’s MCP interface to generate these files instantly.
+Developers often spend significant time manually creating claude.md, project_general.md, etc., to improve results inside their AI coding IDEs. Sidekick Dev eliminates this manual work by using DeepWiki's MCP interface to generate these files instantly.
 
 🛠 Architecture
 ✅ Frontend
@@ -21,7 +21,7 @@ Receive one or more markdown files
 
 Zip & download multiple files if needed
 
-Add a Generated using DeepCode footer to each file
+Add a Generated using Sidekick Dev footer to each file
 
 ✅ Backend
 Framework: FastAPI
@@ -243,7 +243,7 @@ yaml
 Copy
 Edit
 ---
-Generated using [DeepCode](https://github.com/your-org/deepcode), your coding agent sidekick.
+Generated using [Sidekick Dev](https://github.com/your-org/sidekick-dev), your coding agent sidekick.
 🧪 Testing Plan
 ✅ Happy Path
 Valid GitHub repo + one agent → single .md file downloaded

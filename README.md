@@ -1,6 +1,6 @@
-# Sidekick Code
+# Sidekick Dev
 
-Automatically generate high-quality markdown context files for AI coding agents like Claude, Cursor, Windsurf, and Gemini by analyzing any public GitHub repository
+Automatically generate high-quality markdown context files for AI coding agents like Claude, Cursor, Windsurf, and Gemini by analyzing any public GitHub repository.
 
 ## Features
 
@@ -17,8 +17,8 @@ Automatically generate high-quality markdown context files for AI coding agents 
 
 ```bash
 # Clone and start both frontend and backend
-git clone https://github.com/saharmor/sidekick-code-web.git
-cd sidekick-code-web
+git clone https://github.com/saharmor/sidekick-dev-web.git
+cd sidekick-dev-web
 ./start-dev.sh
 ```
 
@@ -128,8 +128,8 @@ npm run build
 **Docker:**
 ```bash
 cd backend
-docker build -t sidekick-code-api .
-docker run -p 8000:8000 sidekick-code-api
+docker build -t sidekick-dev-api .
+docker run -p 8000:8000 sidekick-dev-api
 ```
 
 ## Configuration
@@ -191,4 +191,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-Built by [Sahar Mor](https://github.com/saharmor) | [Clone on GitHub](https://github.com/saharmor/sidekick-code-web)
+Built by [Sahar Mor](https://github.com/saharmor) | [Clone on GitHub](https://github.com/saharmor/sidekick-dev-web)
