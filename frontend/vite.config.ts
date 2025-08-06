@@ -19,4 +19,6 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Configure for GitHub Pages deployment
+  base: mode === 'production' ? '/sidekick-code-web/' : '/',
 }));
