@@ -247,12 +247,20 @@ class DeepWikiClient:
             
         Returns:
             DeepWikiResponse: Response containing the answer and view search URL
+            
+        Raises:
+            DeepWikiInitializationError: If the client is not properly initialized
+            DeepWikiConnectionError: If there's a network connection issue
+            DeepWikiTimeoutError: If the request times out
+            DeepWikiAPIError: If the API returns an error status code
+            DeepWikiResponseError: If the response is invalid or contains errors
+            DeepWikiError: For any other unexpected errors
         """
         try:
             if not self.is_initialized:
                 error_msg = "MCP client not properly initialized"
                 debug_log(error_msg)
-                return DeepWikiResponse(raw_response=error_msg, response=error_msg)
+                raise DeepWikiInitializationError(error_msg)
             
             # Normalize repository name if provided
             if repository:
@@ -296,41 +304,53 @@ class DeepWikiClient:
             if tool_response.status_code == 200:
                 # Check if response has content
                 if not tool_response.text.strip():
-                    error_msg = "Empty response from DeepWiki"
-                    return DeepWikiResponse(raw_response=error_msg, response=error_msg)
+                    raise DeepWikiResponseError("Empty response from DeepWiki", raw_response="")
                 
                 # Parse the SSE response
                 text_content = parse_sse_response(tool_response.text)
-                if text_content and not text_content.startswith("DeepWiki error:") and not text_content.startswith("Failed to parse") and not text_content.startswith("Error parsing") and not text_content.startswith("No message event"):
-                    # Extract the view search URL from the raw response
-                    view_url = extract_view_search_url(text_content)
-                    # Clean the response for frontend use
-                    cleaned_response = clean_deepwiki_response(text_content)
-                    return DeepWikiResponse(raw_response=text_content, response=cleaned_response, view_search_url=view_url)
-                else:
-                    debug_log(f"SSE parsing result: {text_content}")
-                    # Even for error responses, try to extract URL and clean response
-                    view_url = extract_view_search_url(text_content) if text_content else None
-                    raw_content = text_content or "No valid response received"
-                    cleaned_content = clean_deepwiki_response(raw_content) if raw_content else raw_content
-                    return DeepWikiResponse(raw_response=raw_content, response=cleaned_content, view_search_url=view_url)
+                
+                # Check if the parsed content indicates an error
+                if not text_content:
+                    raise DeepWikiResponseError("Failed to parse response from DeepWiki", raw_response=tool_response.text)
+                
+                # Check for known error patterns
+                error_patterns = [
+                    "DeepWiki error:",
+                    "Failed to parse",
+                    "Error parsing",
+                    "No message event"
+                ]
+                
+                for pattern in error_patterns:
+                    if text_content.startswith(pattern):
+                        raise DeepWikiResponseError(f"DeepWiki returned error: {text_content}", raw_response=text_content)
+                
+                # If we get here, it's a successful response
+                # Extract the view search URL from the raw response
+                view_url = extract_view_search_url(text_content)
+                # Clean the response for frontend use
+                cleaned_response = clean_deepwiki_response(text_content)
+                return DeepWikiResponse(raw_response=text_content, response=cleaned_response, view_search_url=view_url)
             else:
-                error_msg = f"DeepWiki API Error {tool_response.status_code}: {tool_response.text}"
-                debug_log(error_msg)
-                return DeepWikiResponse(raw_response=error_msg, response=error_msg)
+                error_msg = f"DeepWiki API returned error status: {tool_response.text}"
+                debug_log(f"DeepWiki API Error {tool_response.status_code}: {tool_response.text}")
+                raise DeepWikiAPIError(error_msg, status_code=tool_response.status_code, raw_response=tool_response.text)
                 
         except requests.exceptions.Timeout:
             error_msg = "Request to DeepWiki timed out"
             debug_log(error_msg)
-            return DeepWikiResponse(raw_response=error_msg, response=error_msg)
+            raise DeepWikiTimeoutError(error_msg)
         except requests.exceptions.RequestException as e:
             error_msg = f"Error connecting to DeepWiki: {str(e)}"
             debug_log(error_msg)
-            return DeepWikiResponse(raw_response=error_msg, response=error_msg)
+            raise DeepWikiConnectionError(error_msg)
+        except DeepWikiError:
+            # Re-raise our custom exceptions as-is
+            raise
         except Exception as e:
-            error_msg = f"Error processing DeepWiki response: {str(e)}"
+            error_msg = f"Unexpected error processing DeepWiki response: {str(e)}"
             debug_log(error_msg)
-            return DeepWikiResponse(raw_response=error_msg, response=error_msg)
+            raise DeepWikiError(error_msg)
     
     def close(self):
         """Close the MCP session (optional cleanup)."""
