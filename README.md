@@ -1,6 +1,6 @@
 # Sidekick Code
 
-Automatically generate high-quality markdown context files for AI coding agents like Claude, Cursor, Windsurf, and Gemini by analyzing any public GitHub repository.
+Automatically generate high-quality markdown context files for AI coding agents like Claude, Cursor, Windsurf, and Gemini by analyzing any public GitHub repository
 
 ## Features
 
