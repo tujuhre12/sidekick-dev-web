@@ -77,7 +77,20 @@ async def generate_context_files(request: GenerateRequest):
         
         if error:
             logger.error(f"File generation failed: {error}")
-            raise HTTPException(status_code=400, detail=error)
+            
+            # Check if error is structured (repository not found)
+            if isinstance(error, dict) and error.get("type") == "repository_not_found":
+                # Create structured error response for repository not found
+                error_response = ErrorResponse(
+                    error=error["message"],
+                    error_type="repository_not_found",
+                    deepwiki_url=error["deepwiki_url"],
+                    repo_type=error["repo_type"]
+                )
+                raise HTTPException(status_code=404, detail=error_response.dict())
+            else:
+                # Regular error handling for other types of errors
+                raise HTTPException(status_code=400, detail=error)
         
         if not files:
             logger.error("No files were generated")
@@ -133,9 +146,18 @@ async def generate_context_files(request: GenerateRequest):
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
     """Custom HTTP exception handler."""
+    # Check if detail is already a structured error dict (from repository not found)
+    if isinstance(exc.detail, dict) and 'error_type' in exc.detail:
+        # Already a structured error response
+        content = exc.detail
+        content['success'] = False  # Ensure success is set to False
+    else:
+        # Regular error handling
+        content = ErrorResponse(error=exc.detail).dict()
+    
     return JSONResponse(
         status_code=exc.status_code,
-        content=ErrorResponse(error=exc.detail).dict()
+        content=content
     )
 
 @app.exception_handler(Exception)

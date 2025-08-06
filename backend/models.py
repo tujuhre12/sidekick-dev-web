@@ -1,7 +1,7 @@
 """Pydantic models for request/response validation."""
 
 from pydantic import BaseModel, HttpUrl, validator
-from typing import List
+from typing import List, Optional
 import re
 
 class GenerateRequest(BaseModel):
@@ -51,3 +51,6 @@ class ErrorResponse(BaseModel):
     success: bool = False
     error: str
     details: str = None
+    error_type: Optional[str] = None  # 'repository_not_found' for repo errors
+    deepwiki_url: Optional[str] = None  # URL for indexing/account creation
+    repo_type: Optional[str] = None  # 'private' or 'not_indexed'

@@ -3,7 +3,7 @@
 import io
 import zipfile
 from typing import List, Dict, Tuple
-from deepwiki_client import DeepWikiClient
+from deepwiki_client import DeepWikiClient, DeepWikiRepositoryNotFoundError
 from config import AGENT_CONFIG, UNIVERSAL_PROMPT_TEMPLATE, FOOTER_TEMPLATE
 import logging
 
@@ -113,6 +113,16 @@ def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tupl
         
         return files, None, view_search_url
         
+    except DeepWikiRepositoryNotFoundError as e:
+        logger.warning(f"Repository not found: {str(e)}")
+        # Return the structured error information for the API to handle
+        error_data = {
+            "type": "repository_not_found",
+            "message": e.message,
+            "deepwiki_url": e.deepwiki_url,
+            "repo_type": e.repo_type
+        }
+        return {}, error_data, None
     except Exception as e:
         logger.error(f"Error generating markdown files: {str(e)}")
         return {}, f"Internal error: {str(e)}", None

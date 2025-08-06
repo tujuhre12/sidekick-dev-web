@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Github, Sparkles, Loader2, CheckCircle, Code, Search, Zap, Brain, Package, FileText, FolderOpen, AlertTriangle } from "lucide-react";
-import { API_ENDPOINTS, AGENTS, type AgentId } from "@/config";
+import { Download, Github, Sparkles, Loader2, CheckCircle, Code, Search, Zap, Brain, Package, FileText, FolderOpen, AlertTriangle, Play, ArrowRight } from "lucide-react";
+import { API_ENDPOINTS, AGENTS, REPO_URL, type AgentId } from "@/config";
 
 interface ProgressStep {
   id: string;
@@ -16,8 +16,15 @@ interface ProgressStep {
   status: 'pending' | 'active' | 'completed';
 }
 
+interface RepositoryError {
+  type: string;
+  message: string;
+  deepwikiUrl?: string;
+  repoType?: 'private' | 'not_indexed';
+}
+
 const Index = () => {
-  const [githubUrl, setGithubUrl] = useState("https://github.com/saharmor/simulatedev");
+  const [githubUrl, setGithubUrl] = useState("");
   const [selectedAgents, setSelectedAgents] = useState<AgentId[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -25,6 +32,7 @@ const Index = () => {
   const [isGenerationComplete, setIsGenerationComplete] = useState(false);
   const [viewSearchUrl, setViewSearchUrl] = useState<string | null>(null);
   const [isBackendHealthy, setIsBackendHealthy] = useState<boolean | null>(null);
+  const [repositoryError, setRepositoryError] = useState<RepositoryError | null>(null);
   const { toast } = useToast();
 
   // Helper function to extract username and repo from GitHub URL
@@ -37,8 +45,6 @@ const Index = () => {
     } catch (error) {
       console.error('Error parsing GitHub URL:', error);
     }
-    // Fallback to default values
-    return { username: 'saharmor', repo: 'simulatedev' };
   };
 
   const progressSteps: ProgressStep[] = [
@@ -117,6 +123,7 @@ const Index = () => {
     setIsBackendComplete(false);
     setIsGenerationComplete(false);
     setViewSearchUrl(null);
+    setRepositoryError(null);
     // Note: We intentionally preserve githubUrl and selectedAgents so users don't lose their form data
   };
 
@@ -137,11 +144,182 @@ const Index = () => {
     );
   };
 
+  const handleTryDemo = async () => {
+    // Reset any previous state
+    resetComponentState();
+    
+    // Demo repositories to choose from
+    const demoRepos = [
+      {
+        url: "https://github.com/browser-use/browser-use",
+        name: "browser-use"
+      },
+      {
+        url: "https://github.com/browserbase/stagehand", 
+        name: "stagehand"
+      },
+      {
+        url: "https://github.com/openai/openai-agents-python",
+        name: "openai-agents-python"
+      }
+    ];
+    
+    // Randomly select a demo repository
+    const selectedRepo = demoRepos[Math.floor(Math.random() * demoRepos.length)];
+    
+    // Set demo repository and agents
+    setGithubUrl(selectedRepo.url);
+    setSelectedAgents(["claude", "cursor"]);
+    
+    // Show demo started message
+    toast({
+      title: "Demo started! 🚀",
+      description: `Generating context files for ${selectedRepo.name} with Claude + Cursor`,
+    });
+    
+    // Automatically trigger generation
+    setIsGenerating(true);
+    setRepositoryError(null);
+    
+    // Create an AbortController for request timeout
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, 320000); // 5 minutes and 20 seconds (slightly longer than backend timeout)
+    
+    try {
+      // Call the backend API with timeout handling
+      const response = await fetch(API_ENDPOINTS.generate, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          github_url: selectedRepo.url,
+          selected_agents: ["claude", "cursor"],
+        }),
+        signal: abortController.signal,
+      });
+      
+      // Clear the timeout if request completes successfully
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        // Check if this is a structured repository error
+        if (errorData.error_type === 'repository_not_found') {
+          // Handle repository-specific errors - show persistent error
+          setRepositoryError({
+            type: errorData.error_type,
+            message: errorData.error,
+            deepwikiUrl: errorData.deepwiki_url,
+            repoType: errorData.repo_type
+          });
+          
+          // Reset generation state but keep the error visible
+          setIsGenerating(false);
+          setCurrentStep(0);
+          setIsBackendComplete(false);
+          setIsGenerationComplete(false);
+          setViewSearchUrl(null);
+          
+          return; // Don't continue processing or throw generic error
+        }
+        
+        throw new Error(errorData.error || 'Failed to generate files');
+      }
+
+      // Mark backend as complete - this will trigger the final step
+      setIsBackendComplete(true);
+
+      // Parse the JSON response
+      const data = await response.json();
+      
+      // Store the view search URL for follow-up questions
+      setViewSearchUrl(data.view_search_url);
+
+      // Handle file download based on response type
+      if (data.is_zip) {
+        // Handle ZIP file
+        const zipBytes = Uint8Array.from(atob(data.file_content), c => c.charCodeAt(0));
+        const blob = new Blob([zipBytes], { type: 'application/zip' });
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = data.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      } else {
+        // Handle single markdown file
+        const blob = new Blob([data.file_content], { type: 'text/markdown' });
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = data.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      }
+
+      // Wait a moment to show completion before resetting
+      setTimeout(() => {
+        toast({
+          title: "Demo Complete! 🎉",
+          description: `Generated context files for ${selectedRepo.name} and started download.`,
+        });
+        setIsGenerating(false);
+        setIsGenerationComplete(true);
+      }, 1500);
+
+    } catch (error) {
+      // Clear the timeout if request fails
+      clearTimeout(timeoutId);
+      
+      console.error('Error generating files:', error);
+      
+      // Handle backend/connection errors with toast notifications
+      let errorMessage = "An unexpected error occurred.";
+      let errorTitle = "Demo Failed";
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorTitle = "Request Timeout";
+          errorMessage = "The demo request took too long to complete. Please try again or contact support.";
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+          // Backend is likely down or unreachable
+          errorTitle = "Backend Service Unavailable";
+          errorMessage = "Unable to connect to the backend service for the demo. The server may be down or experiencing issues.";
+          
+          // Check backend health to provide more specific guidance
+          const isHealthy = await checkBackendHealth();
+          if (!isHealthy) {
+            errorMessage = "The backend service is currently unavailable for the demo. Please check if the server is running or contact support if the issue persists.";
+          }
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast({
+        title: errorTitle,
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      // Reset component state immediately on backend error so users can start fresh
+      resetComponentState();
+    }
+  };
+
   const handleGenerateAnother = () => {
     // Reset all component state
     resetComponentState();
     // Also reset form fields since this is an intentional "start over" action
-    setGithubUrl("https://github.com/saharmor/simulatedev");
+    setGithubUrl("");
     setSelectedAgents([]);
   };
 
@@ -165,6 +343,7 @@ const Index = () => {
     }
 
     setIsGenerating(true);
+    setRepositoryError(null); // Clear any previous repository errors
     
     // Create an AbortController for request timeout
     const abortController = new AbortController();
@@ -191,6 +370,27 @@ const Index = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Check if this is a structured repository error
+        if (errorData.error_type === 'repository_not_found') {
+          // Handle repository-specific errors - show persistent error
+          setRepositoryError({
+            type: errorData.error_type,
+            message: errorData.error,
+            deepwikiUrl: errorData.deepwiki_url,
+            repoType: errorData.repo_type
+          });
+          
+          // Reset generation state but keep the error visible
+          setIsGenerating(false);
+          setCurrentStep(0);
+          setIsBackendComplete(false);
+          setIsGenerationComplete(false);
+          setViewSearchUrl(null);
+          
+          return; // Don't continue processing or throw generic error
+        }
+        
         throw new Error(errorData.error || 'Failed to generate files');
       }
 
@@ -245,7 +445,7 @@ const Index = () => {
       
       console.error('Error generating files:', error);
       
-      // Handle different types of errors
+      // Handle backend/connection errors with toast notifications
       let errorMessage = "An unexpected error occurred.";
       let errorTitle = "Generation Failed";
       
@@ -414,28 +614,79 @@ const Index = () => {
                   </div>
 
                   {/* Generate Button */}
-                  <Button
-                    onClick={isGenerationComplete ? handleGenerateAnother : handleGenerate}
-                    disabled={isGenerating}
-                    className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-dreamy hover:shadow-glow transition-all duration-300"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Generating Context Files
-                      </>
-                    ) : isGenerationComplete ? (
-                      <>
-                        <Sparkles className="w-5 h-5 mr-2" />
-                        Generate Another One
-                      </>
-                    ) : (
-                      <>
-                        <Download className="w-5 h-5 mr-2" />
-                        Generate & Download
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={isGenerationComplete ? handleGenerateAnother : handleGenerate}
+                      disabled={isGenerating}
+                      className="flex-1 h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-dreamy hover:shadow-glow transition-all duration-300"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Generating Context Files
+                        </>
+                      ) : isGenerationComplete ? (
+                        <>
+                          <Sparkles className="w-5 h-5 mr-2" />
+                          Generate Another One
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-5 h-5 mr-2" />
+                          Generate & Download
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={handleTryDemo}
+                      disabled={isGenerating}
+                      variant="outline"
+                      className="h-10 px-4 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+                    >
+                      <Play className="w-4 h-4 mr-1" />
+                      Try Demo
+                    </Button>
+                  </div>
+
+                  {/* Repository Error Display - Persistent and prominent */}
+                  {repositoryError && (
+                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-start space-x-3">
+                        <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <h3 className="text-sm font-semibold text-red-800">
+                            {repositoryError.repoType === 'private' ? 'Private Repository Access Required' : 
+                             repositoryError.repoType === 'not_indexed' ? 'Repository Not Indexed' : 
+                             'Repository Error'}
+                          </h3>
+                          <p className="text-sm text-red-700">
+                            {repositoryError.message !== "This repository requires a DeepWiki account to access." && repositoryError.message}
+                          </p>
+                          {repositoryError.deepwikiUrl && (
+                            <div className="mt-3 space-y-2">
+                              {repositoryError.repoType === 'private' && (
+                                <div className="text-sm text-red-700">
+                                  <p className="font-medium mb-2">Private repositories are not supported yet. Want this feature? Ping me on <a href="https://x.com/theaievangelist" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-red-800">X (@theaievangelist)</a> and I'll prioritize it!</p>
+                                </div>
+                              )}
+                              {repositoryError.repoType === 'not_indexed' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  asChild
+                                  className="mt-2 text-red-700 border-red-300 hover:bg-red-100"
+                                >
+                                  <a href={repositoryError.deepwikiUrl} target="_blank" rel="noopener noreferrer">
+                                    Open DeepWiki Page
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Interactive Progress Display */}
                   {isGenerating && (
@@ -529,9 +780,24 @@ const Index = () => {
 
                   <p className={`text-sm mb-4 ${isGenerationComplete ? 'text-green-700' : 'text-gray-700'}`}>
                     {isGenerationComplete 
-                      ? "Your context files are ready! Place them in the correct locations for your selected agents:" 
+                      ? "Your context files have been downloaded! Place them in the correct locations for your selected agents:" 
                       : "Once your context files are ready, place them in the correct locations for your selected agents:"}
                   </p>
+
+                  {/* Warning about context file review */}
+                  {isGenerationComplete && (
+                    <div className="bg-yellow-50/80 backdrop-blur-sm rounded-lg p-4 border border-yellow-200/50 mb-4">
+                      <div className="flex items-start space-x-3">
+                        <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h4 className="font-medium text-yellow-900 mb-1">⚠️ Important</h4>
+                          <p className="text-sm text-yellow-800">
+                            Review this context file to ensure it matches your preferences. Five minutes now saves hours later!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* DeepWiki Follow-up Questions Link */}
                   {isGenerationComplete && (() => {
@@ -615,7 +881,18 @@ const Index = () => {
       {/* Footer - Always at bottom */}
       <div className="text-center mt-8 text-sm text-muted-foreground">
         <p>
-          Built by <a href="https://github.com/saharmor" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Sahar Mor</a>  
+          <div className="flex items-center justify-center space-x-4">
+            <div>
+            Built by <a href="https://github.com/saharmor" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Sahar Mor</a>  
+            </div>            
+            <span className="text-muted-foreground">|</span>
+            <a href={REPO_URL} className="flex items-center space-x-2 text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              <span>Clone me!</span>
+            </a>
+          </div>
         </p>
       </div>
     </div>

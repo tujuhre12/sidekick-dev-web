@@ -38,6 +38,13 @@ class DeepWikiInitializationError(DeepWikiError):
     """Raised when the DeepWiki client is not properly initialized."""
     pass
 
+class DeepWikiRepositoryNotFoundError(DeepWikiError):
+    """Raised when a repository is not found or not indexed in DeepWiki."""
+    def __init__(self, message: str, deepwiki_url: str, repo_type: str, raw_response: Optional[str] = None):
+        super().__init__(message, raw_response)
+        self.deepwiki_url = deepwiki_url
+        self.repo_type = repo_type  # 'private' or 'not_indexed'
+
 @dataclass
 class DeepWikiResponse:
     """
@@ -133,6 +140,64 @@ def parse_sse_response(response_text: str) -> str:
     except Exception as e:
         debug_log(f"Error parsing SSE response: {str(e)}")
         return f"Error parsing SSE response: {str(e)}"
+
+def extract_repository_url_from_error(error_message: str) -> Optional[str]:
+    """
+    Extract DeepWiki repository URL from error message.
+    
+    Handles error messages like:
+    'Error processing question: Repository not found. Visit https://deepwiki.com/saharmor/DeepAnswer to index it.ping'
+    
+    Args:
+        error_message: The error message containing the URL
+        
+    Returns:
+        The extracted DeepWiki URL without .ping suffix, or None if not found
+    """
+    if not error_message:
+        return None
+    
+    # Look for URLs in the error message
+    import re
+    url_pattern = r"Visit (https://deepwiki\.com/[^\s]+)"
+    match = re.search(url_pattern, error_message)
+    
+    if match:
+        url = match.group(1)
+        # Remove .ping suffix if present
+        if url.endswith('.ping'):
+            url = url[:-5]
+        return url
+    
+    return None
+
+def check_repo_not_found_error_type(repository: str) -> str:
+    """
+    Check if a repository is private or not indexed by hitting the GitHub repository URL.
+    
+    Args:
+        repository: The GitHub repository URL to check
+        
+    Returns:
+        'private' if repository returns 404 (private), 'not_indexed' if accessible (just not indexed), 'unknown' if can't determine
+    """
+    try:        
+        # Check if the repository exists on GitHub
+        response = requests.get(repository, timeout=10)
+        
+        if response.status_code == 404:
+            # Repository not found on GitHub - likely private
+            return "private"
+        elif response.status_code == 200:
+            # Repository exists on GitHub - just not indexed on DeepWiki
+            return "not_indexed"
+        else:
+            debug_log(f"Unexpected status code {response.status_code} for {repository}")
+            return "unknown"
+            
+    except Exception as e:
+        debug_log(f"Error checking repository type for {repository}: {str(e)}")
+        return "unknown"
 
 def extract_view_search_url(response_text: str) -> Optional[str]:
     """
@@ -250,6 +315,7 @@ class DeepWikiClient:
             
         Raises:
             DeepWikiInitializationError: If the client is not properly initialized
+            DeepWikiRepositoryNotFoundError: If the repository is not found or not indexed
             DeepWikiConnectionError: If there's a network connection issue
             DeepWikiTimeoutError: If the request times out
             DeepWikiAPIError: If the API returns an error status code
@@ -313,11 +379,27 @@ class DeepWikiClient:
                 if not text_content:
                     raise DeepWikiResponseError("Failed to parse response from DeepWiki", raw_response=tool_response.text)
                 
-                # Check for known error patterns
+                # Check for repository not found error first
+                if "Repository not found. Visit" in text_content:
+                    deepwiki_url = extract_repository_url_from_error(text_content)
+                    if deepwiki_url:
+                        repo_type = check_repo_not_found_error_type(repository)
+                        
+                        if repo_type == "private":
+                            message = "This repository requires a DeepWiki account to access."
+                        elif repo_type == "not_indexed":
+                            message = f"This repository hasn't been indexed yet. Trigger indexing on and try again in about 10 minutes."
+                        else:
+                            message = f"Repository not found. Visit {deepwiki_url} to index it and try again in 5 minutes."
+                        
+                        raise DeepWikiRepositoryNotFoundError(message, deepwiki_url, repo_type, raw_response=text_content)
+                
+                # Check for other known error patterns
                 error_patterns = [
                     "DeepWiki error:",
                     "Failed to parse",
                     "Error parsing",
+                    "Error processing",
                     "No message event"
                 ]
                 
@@ -358,3 +440,17 @@ class DeepWikiClient:
             debug_log("Closing DeepWiki MCP session...")
             self.session_id = None
             self.is_initialized = False
+
+# client=DeepWikiClient()
+
+# try:   
+#     response=client.query("https://github.com/saharmor/DeepAnswer", "What is the main purpose of the DeepAnswer project?")
+#     print(response)
+# except DeepWikiRepositoryNotFoundError as e:
+#     print(e)
+
+# try:
+#     response=client.query("https://github.com/saharmor/sidekick-buddy-gen", "What is the main purpose of the DeepAnswer project?")
+#     print(response)
+# except DeepWikiRepositoryNotFoundError as e:
+#     print(e)
