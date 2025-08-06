@@ -27,6 +27,20 @@ const Index = () => {
   const [isBackendHealthy, setIsBackendHealthy] = useState<boolean | null>(null);
   const { toast } = useToast();
 
+  // Helper function to extract username and repo from GitHub URL
+  const extractGithubInfo = (url: string) => {
+    try {
+      const match = url.match(/github\.com\/([^\/]+)\/([^\/\?#]+)/);
+      if (match) {
+        return { username: match[1], repo: match[2] };
+      }
+    } catch (error) {
+      console.error('Error parsing GitHub URL:', error);
+    }
+    // Fallback to default values
+    return { username: 'saharmor', repo: 'simulatedev' };
+  };
+
   const progressSteps: ProgressStep[] = [
     { id: 'initialize', label: 'Initializing DeepWiki connection', icon: Zap, minDelay: 6000, maxDelay: 10000, status: 'pending' },
     { id: 'prompt', label: 'Sending prompt to DeepWiki', icon: Search, minDelay: 14000, maxDelay: 18000, status: 'pending' },
@@ -520,30 +534,33 @@ const Index = () => {
                   </p>
 
                   {/* DeepWiki Follow-up Questions Link */}
-                  {isGenerationComplete && viewSearchUrl && (
-                    <div className="bg-blue-50/80 backdrop-blur-sm rounded-lg p-4 border border-blue-200/50 mb-4">
-                      <div className="flex items-start space-x-3">
-                        <Search className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-blue-900 mb-1">Have Follow-up Questions?</h4>
-                          <p className="text-sm text-blue-700 mb-3">
-                            Ask specific questions about the codebase, architecture, or implementation details on{' '}
-                            <a
-                              href={`https://deepwiki.com/saharmor/simulatedev?utm_source=sidekickcode.dev`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center space-x-1 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
-                            >
-                              DeepWiki{' '}
-                              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                              </svg>
-                            </a>
-                          </p>
+                  {isGenerationComplete && (() => {
+                    const { username, repo } = extractGithubInfo(githubUrl);
+                    return (
+                      <div className="bg-blue-50/80 backdrop-blur-sm rounded-lg p-4 border border-blue-200/50 mb-4">
+                        <div className="flex items-start space-x-3">
+                          <Search className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-blue-900 mb-1">Have Follow-up Questions?</h4>
+                            <p className="text-sm text-blue-700 mb-3">
+                              Ask specific questions about the codebase, architecture, or implementation details on{' '}
+                              <a
+                                href={`https://deepwiki.com/${username}/${repo}?utm_source=sidekickcode.dev`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center space-x-1 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
+                              >
+                                DeepWiki{' '}
+                                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                              </a>
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                   
                   <div className="space-y-4">
                     {selectedAgents.map((agentId) => {
