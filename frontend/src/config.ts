@@ -34,7 +34,6 @@ export const AGENTS = [
         "Any parent or child directory of where you invoke Claude",
         "Your home directory at ~/.claude/claude.md for global use"
       ],
-      note: "Claude will automatically load all relevant claude.md files in scope."
     }
   },
   { 
@@ -50,7 +49,6 @@ export const AGENTS = [
       locations: [
         "The root of your repository"
       ],
-      note: "Cursor does not scan subdirectories or parent folders. You can also pin this file manually inside the IDE to load it into context."
     }
   },
   { 
@@ -66,7 +64,6 @@ export const AGENTS = [
       locations: [
         "The root of your project"
       ],
-      note: "Windsurf automatically includes markdown-based rule or instruction files from the repo root into its session context."
     }
   },
   { 
@@ -84,7 +81,6 @@ export const AGENTS = [
         "Any parent directory (up to your home directory or git root)",
         "Any subdirectory where the file is relevant"
       ],
-      note: "Gemini scans up and down the directory tree, making it flexible for monorepos and modular setups."
     }
   },
   { 
@@ -101,7 +97,6 @@ export const AGENTS = [
         "The root of your repository",
         "Any directory accessible by Cline"
       ],
-      note: "Cline can read context files placed in the repository root or in accessible directories."
     }
   },
   { 
@@ -118,7 +113,6 @@ export const AGENTS = [
         "The root of your repository",
         "Pin the file manually in Bolt's interface for immediate context loading"
       ],
-      note: "Bolt works best when context files are pinned directly in the interface or placed at the repository root."
     }
   },
   { 
@@ -135,7 +129,6 @@ export const AGENTS = [
         "The root of your workspace",
         "Reference the file in VS Code settings or workspace configuration"
       ],
-      note: "VS Code Copilot can reference markdown files when properly configured in your workspace settings."
     }
   },
   { 
@@ -153,7 +146,6 @@ export const AGENTS = [
         "In your project's documentation folder",
         "Reference in IntelliJ's AI assistant settings"
       ],
-      note: "IntelliJ's AI features can reference project documentation when properly configured."
     }
   },
   { 
@@ -170,7 +162,6 @@ export const AGENTS = [
         "The root of your project",
         "Pin directly in the Lovable interface for immediate context"
       ],
-      note: "Lovable works best when context files are pinned directly in the interface or placed at the project root."
     }
   },
 ] as const;

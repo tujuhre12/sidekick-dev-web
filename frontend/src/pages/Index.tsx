@@ -49,9 +49,9 @@ const Index = () => {
 
   const progressSteps: ProgressStep[] = [
     { id: 'initialize', label: 'Initializing DeepWiki connection', icon: Zap, minDelay: 6000, maxDelay: 10000, status: 'pending' },
-    { id: 'prompt', label: 'Sending prompt to DeepWiki', icon: Search, minDelay: 14000, maxDelay: 18000, status: 'pending' },
+    { id: 'prompt', label: 'Investigating repositroy', icon: Search, minDelay: 14000, maxDelay: 18000, status: 'pending' },
     { id: 'generate', label: 'Generating markdown context', icon: Code, minDelay: 7000, maxDelay: 10000, status: 'pending' },
-    { id: 'prepare', label: 'Preparing download', icon: Package, minDelay: 3000, maxDelay: 5000, status: 'pending' },
+    { id: 'prepare', label: 'Downloading context files', icon: Package, minDelay: 3000, maxDelay: 5000, status: 'pending' },
   ];
 
   // Function to check if backend is available
@@ -780,7 +780,7 @@ const Index = () => {
 
                   <p className={`text-sm mb-4 ${isGenerationComplete ? 'text-green-700' : 'text-gray-700'}`}>
                     {isGenerationComplete 
-                      ? "Your context files have been downloaded! Place them in the correct locations for your selected agents:" 
+                      ? "Your context files have been downloaded! Place them in the correct locations for your selected agents (see below):" 
                       : "Once your context files are ready, place them in the correct locations for your selected agents:"}
                   </p>
 
@@ -790,7 +790,7 @@ const Index = () => {
                       <div className="flex items-start space-x-3">
                         <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
-                          <h4 className="font-medium text-yellow-900 mb-1">⚠️ Important</h4>
+                          <h4 className="font-medium text-yellow-900 mb-1">Important</h4>
                           <p className="text-sm text-yellow-800">
                             Review this context file to ensure it matches your preferences. Five minutes now saves hours later!
                           </p>
@@ -859,14 +859,6 @@ const Index = () => {
                               </li>
                             ))}
                           </ul>
-                          
-                          {agent.placement.note && (
-                            <div className="bg-gray-50/70 rounded p-3 border border-gray-100">
-                              <p className="text-xs text-gray-800">
-                                <strong>Note:</strong> {agent.placement.note}
-                              </p>
-                            </div>
-                          )}
                         </div>
                       );
                     })}
