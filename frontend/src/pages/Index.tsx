@@ -519,7 +519,7 @@ const Index = () => {
         {/* Hero Section */}
           <div className="text-center mb-4 mt-4 animate-float">
             <div className="flex justify-center mb-3">
-              <div className="relative inline-block pl-10 sm:pl-14 md:pl-16">
+              <div className="relative inline-block pl-10 sm:pl-12 md:pl-16">
                 <h1 className="hero-title whitespace-nowrap font-bold font-press-start bg-clip-text text-transparent pixel-glow-compact word-tight gradient-hero-warmer hero-text-shadow">
                   Sidekick Dev
                 </h1>
