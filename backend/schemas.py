@@ -1,6 +1,6 @@
 """Pydantic schemas for DB-backed resources."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, validator
 from typing import List, Optional
 
 
@@ -19,4 +19,15 @@ class UserQueryRead(BaseModel):
     class Config:
         from_attributes = True
 
+
+class EmailSignupCreate(BaseModel):
+    email: EmailStr
+
+
+class EmailSignupRead(BaseModel):
+    id: int
+    email: EmailStr
+
+    class Config:
+        from_attributes = True
 

@@ -18,6 +18,7 @@ export const DIAGNOSTIC_INSIGHTS_ENABLED = import.meta.env.VITE_DIAGNOSTIC_INSIG
 export const API_ENDPOINTS = {
   generate: `${API_BASE_URL}/api/generate`,
   health: `${API_BASE_URL}/health`,
+  emailSignup: `${API_BASE_URL}/api/email_signup`,
 } as const;
 
 // Helper to resolve asset paths relative to Vite base URL (works on GitHub Pages subpaths)
@@ -95,7 +96,7 @@ export const AGENTS = [
     icon: asset("product-logos/cline.png"), 
     color: "text-green-600",
     fileName: "cline.md",
-    active: false,
+    active: true,
     placement: {
       title: "Cline",
       description: "Place cline.md in:",

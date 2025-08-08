@@ -1,8 +1,9 @@
 """Pydantic models for request/response validation."""
 
-from pydantic import BaseModel, HttpUrl, validator
+from pydantic import BaseModel, HttpUrl, validator, EmailStr
 from typing import List, Optional
 import re
+from config import AGENT_CONFIG
 
 class GenerateRequest(BaseModel):
     """Request model for the generate endpoint."""
@@ -27,8 +28,8 @@ class GenerateRequest(BaseModel):
         """Validate that at least one agent is selected and all agents are valid."""
         if not v:
             raise ValueError('At least one agent must be selected')
-        
-        valid_agents = {'claude', 'cursor', 'windsurf', 'gemini'}
+
+        valid_agents = set(AGENT_CONFIG.keys())
         invalid_agents = set(v) - valid_agents
         if invalid_agents:
             raise ValueError(f'Invalid agents: {", ".join(invalid_agents)}')
@@ -54,3 +55,11 @@ class ErrorResponse(BaseModel):
     error_type: Optional[str] = None  # 'repository_not_found' for repo errors
     deepwiki_url: Optional[str] = None  # URL for indexing/account creation
     repo_type: Optional[str] = None  # 'private' or 'not_indexed'
+
+
+class EmailSignupRequest(BaseModel):
+    email: EmailStr
+
+class EmailSignupResponse(BaseModel):
+    success: bool
+    message: str

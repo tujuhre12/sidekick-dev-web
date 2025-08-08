@@ -1,6 +1,6 @@
 """Database setup: SQLAlchemy engine, session, and base class."""
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 from typing import Generator
 import os
@@ -89,4 +89,16 @@ def get_db() -> Generator:
     finally:
         db.close()
 
+
+# Ensure Postgres sessions use Pacific Time for display and NOW()
+if DATABASE_URL.startswith("postgresql"):
+    @event.listens_for(engine, "connect")
+    def set_postgres_timezone(dbapi_connection, connection_record):  # type: ignore[no-redef]
+        try:
+            cursor = dbapi_connection.cursor()
+            cursor.execute("SET TIME ZONE 'America/Los_Angeles'")
+            cursor.close()
+        except Exception:
+            # Non-fatal: continue with default timezone if this fails
+            pass
 

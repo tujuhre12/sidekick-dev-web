@@ -6,13 +6,13 @@ import base64
 from fastapi import FastAPI, HTTPException, Response, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from models import GenerateRequest, GenerateResponse, ErrorResponse
+from models import GenerateRequest, GenerateResponse, ErrorResponse, EmailSignupRequest, EmailSignupResponse
 from services import generate_markdown_files, create_zip_file, extract_repo_name, initialize_deepwiki_client, close_deepwiki_client
 from config import CORS_ORIGINS, DEBUG
 import logging
 from sqlalchemy.orm import Session
 from db import init_db, get_db
-from db_models import UserQuery, ErrorEvent
+from db_models import UserQuery, ErrorEvent, EmailSignup
 
 # Configure logging
 logging.basicConfig(level=logging.INFO if DEBUG else logging.WARNING)
@@ -62,6 +62,21 @@ async def root():
 async def health():
     """Health check endpoint for monitoring."""
     return {"status": "healthy", "service": "sidekick-dev-api"}
+
+@app.post("/api/email_signup", response_model=EmailSignupResponse)
+async def email_signup(request: EmailSignupRequest, db: Session = Depends(get_db)):
+    """Capture user's email signups for updates."""
+    try:
+        # Idempotent: ignore duplicates
+        existing = db.query(EmailSignup).filter(EmailSignup.email == request.email).first()
+        if existing is None:
+            record = EmailSignup(email=request.email)
+            db.add(record)
+            db.commit()
+        return EmailSignupResponse(success=True, message="Thanks! You're on the list.")
+    except Exception as e:
+        logger.error(f"Failed to save email signup: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save email. Please try again later.")
 
 @app.post("/api/generate", response_model=GenerateResponse)
 async def generate_context_files(request: GenerateRequest, http_request: Request, db: Session = Depends(get_db)):

@@ -6,8 +6,12 @@ It handles normalizing existing data and updating types where supported.
 Current migrations:
  - 2025-08-08-error-event-enum: normalize `error_events.event_type` values and
    migrate to an enum in Postgres.
- - 2025-08-08-user-queries-add-client-id: add `client_id` column and index to
-   `user_queries` table (idempotent).
+  - 2025-08-08-user-queries-add-client-id: add `client_id` column and index to
+    `user_queries` table (idempotent).
+  - 2025-08-08-email-signups: create `email_signups` table if it does not exist
+    (idempotent, for SQLite and Postgres).
+  - 2025-08-08-set-timezone-pacific: set Postgres DB timezone to America/Los_Angeles
+    for sessions and normalize existing timestamps for display consistency.
 """
 
 from datetime import datetime
@@ -161,6 +165,72 @@ def _user_queries_add_client_id(engine: Engine) -> None:
             )
 
 
+def _create_email_signups_table(engine: Engine) -> None:
+    """Create email_signups table if it doesn't exist."""
+    dialect = engine.dialect.name
+    with engine.begin() as conn:
+        if dialect == "sqlite":
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS email_signups (
+                        id INTEGER PRIMARY KEY,
+                        email VARCHAR(320) NOT NULL UNIQUE,
+                        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+                    );
+                    """
+                )
+            )
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_email_signups_email ON email_signups (email)"
+                )
+            )
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_email_signups_created_at ON email_signups (created_at)"
+                )
+            )
+        else:
+            # Postgres
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS email_signups (
+                        id SERIAL PRIMARY KEY,
+                        email VARCHAR(320) NOT NULL UNIQUE,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    );
+                    """
+                )
+            )
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_email_signups_email ON email_signups (email)"
+                )
+            )
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_email_signups_created_at ON email_signups (created_at)"
+                )
+            )
+
+
+def _set_database_timezone_pacific(engine: Engine) -> None:
+    """Set Postgres default timezone to America/Los_Angeles if possible.
+
+    For SQLite there is no timezone setting; timestamps stored as text/naive.
+    """
+    if engine.dialect.name != "postgresql":
+        return
+    with engine.begin() as conn:
+        # Set the parameter at database level if permitted; otherwise sessions (handled in db.py)
+        try:
+            conn.execute(text("ALTER DATABASE CURRENT SET TIME ZONE 'America/Los_Angeles'"))
+        except Exception:
+            # Not critical; session-level SET is handled in db.py
+            pass
+
 def run_all_migrations(engine: Engine) -> None:
     """Run all pending migrations idempotently in declared order."""
     _ensure_schema_migrations_table(engine)
@@ -177,6 +247,12 @@ def run_all_migrations(engine: Engine) -> None:
 
     if not any(name == "2025-08-08-user-queries-add-client-id" for name, _ in MIGRATIONS):
         MIGRATIONS.append(("2025-08-08-user-queries-add-client-id", _user_queries_add_client_id))
+
+    if not any(name == "2025-08-08-email-signups" for name, _ in MIGRATIONS):
+        MIGRATIONS.append(("2025-08-08-email-signups", _create_email_signups_table))
+
+    if not any(name == "2025-08-08-set-timezone-pacific" for name, _ in MIGRATIONS):
+        MIGRATIONS.append(("2025-08-08-set-timezone-pacific", _set_database_timezone_pacific))
 
     # Apply each migration if not already applied
     for name, fn in MIGRATIONS:
