@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Download, Github, Sparkles, Loader2, CheckCircle, Code, Search, Zap, Brain, Package, FileText, FolderOpen, AlertTriangle, Play, ArrowRight } from "lucide-react";
 import { API_ENDPOINTS, AGENTS, REPO_URL, type AgentId } from "@/config";
 import { trackClick, trackEvent } from "@/hooks/use-analytics";
+import { getGAIdentifiers } from "@/hooks/use-analytics";
+import CookieBanner from "@/components/CookieBanner";
 
 interface ProgressStep {
   id: string;
@@ -191,10 +193,13 @@ const Index = () => {
     
     try {
       // Call the backend API with timeout handling
+      const { clientId, sessionId } = await getGAIdentifiers();
       const response = await fetch(API_ENDPOINTS.generate, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(sessionId ? { 'X-Session-Id': sessionId } : {}),
+          ...(clientId ? { 'X-Client-Id': clientId } : {}),
         },
         body: JSON.stringify({
           github_url: selectedRepo.url,
@@ -364,10 +369,13 @@ const Index = () => {
     
     try {
       // Call the backend API with timeout handling
+      const { clientId, sessionId } = await getGAIdentifiers();
       const response = await fetch(API_ENDPOINTS.generate, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(sessionId ? { 'X-Session-Id': sessionId } : {}),
+          ...(clientId ? { 'X-Client-Id': clientId } : {}),
         },
         body: JSON.stringify({
           github_url: githubUrl.trim(),
@@ -505,13 +513,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-dreamy flex flex-col items-center justify-center px-4 py-8 md:px-6 lg:px-8">
+      <CookieBanner />
       {/* Main Content Container - Centered */}
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-6xl">
         {/* Hero Section */}
         <div className="text-center mb-4 animate-float">
           <div className="flex items-center justify-center gap-4 mb-5">
             <Sparkles className="w-10 h-10 text-primary" />
-            <h1 className="text-5xl md:text-6xl font-bold font-press-start bg-clip-text text-transparent pixel-glow animate-flicker-soft gradient-hero-warmer">
+            <h1 className="text-5xl md:text-6xl font-bold font-press-start bg-clip-text text-transparent pixel-glow gradient-hero-warmer hero-text-shadow">
               Sidekick Dev
             </h1>
           </div>

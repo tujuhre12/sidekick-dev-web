@@ -3,13 +3,16 @@
 import os
 import tempfile
 import base64
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from models import GenerateRequest, GenerateResponse, ErrorResponse
 from services import generate_markdown_files, create_zip_file, extract_repo_name, initialize_deepwiki_client, close_deepwiki_client
 from config import CORS_ORIGINS, DEBUG
 import logging
+from sqlalchemy.orm import Session
+from db import init_db, get_db
+from db_models import UserQuery, ErrorEvent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO if DEBUG else logging.WARNING)
@@ -38,6 +41,8 @@ app.add_middleware(
 async def startup_event():
     """Initialize services on application startup."""
     logger.info("Initializing application services...")
+    # Initialize database and tables
+    init_db()
     initialize_deepwiki_client()
     logger.info("Application startup complete")
 
@@ -59,7 +64,7 @@ async def health():
     return {"status": "healthy", "service": "sidekick-dev-api"}
 
 @app.post("/api/generate", response_model=GenerateResponse)
-async def generate_context_files(request: GenerateRequest):
+async def generate_context_files(request: GenerateRequest, http_request: Request, db: Session = Depends(get_db)):
     """
     Generate context markdown files for the specified GitHub repository and agents.
     
@@ -72,6 +77,23 @@ async def generate_context_files(request: GenerateRequest):
     try:
         logger.info(f"Generate request received - URL: {request.github_url}, Agents: {request.selected_agents}")
         
+        # Persist the query for analytics
+        user_query_record = None
+        try:
+            client_info = http_request.headers.get("User-Agent", "")
+            user_query_record = UserQuery(
+                github_url=request.github_url,
+                agents_csv=",".join(request.selected_agents),
+                session_id=http_request.headers.get("X-Session-Id"),
+                client_id=http_request.headers.get("X-Client-Id"),
+                client_info=client_info,
+            )
+            db.add(user_query_record)
+            db.commit()
+            db.refresh(user_query_record)
+        except Exception as e:
+            logger.warning(f"Failed to persist user query: {e}")
+
         # Generate markdown files
         files, error, view_search_url = generate_markdown_files(request.github_url, request.selected_agents)
         
@@ -87,6 +109,19 @@ async def generate_context_files(request: GenerateRequest):
                     deepwiki_url=error["deepwiki_url"],
                     repo_type=error["repo_type"]
                 )
+                # Record error event in DB if possible
+                try:
+                    if user_query_record is not None:
+                        event_type = "Private repository" if error.get("repo_type") == "private" else "Repository not index"
+                        error_event = ErrorEvent(
+                            event_type=event_type,
+                            repository_url=request.github_url,
+                            user_query_id=user_query_record.id,
+                        )
+                        db.add(error_event)
+                        db.commit()
+                except Exception as e:
+                    logger.warning(f"Failed to persist error event: {e}")
                 raise HTTPException(status_code=404, detail=error_response.dict())
             else:
                 # Regular error handling for other types of errors
