@@ -6,15 +6,18 @@ It handles normalizing existing data and updating types where supported.
 Current migrations:
  - 2025-08-08-error-event-enum: normalize `error_events.event_type` values and
    migrate to an enum in Postgres.
+ - 2025-08-08-user-queries-add-client-id: add `client_id` column and index to
+   `user_queries` table (idempotent).
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Tuple, Callable
 from sqlalchemy.engine import Engine
 from sqlalchemy import text
 
-
-MIGRATION_NAME = "2025-08-08-error-event-enum"
+# Migrations are defined as (name, callable) pairs and will be applied in order
+MigrationFunc = Callable[[Engine], None]
+MIGRATIONS: List[Tuple[str, MigrationFunc]] = []
 
 
 def _ensure_schema_migrations_table(engine: Engine) -> None:
@@ -115,17 +118,70 @@ def _migrate_sqlite(engine: Engine) -> None:
     _normalize_error_event_values(engine)
 
 
+def _user_queries_add_client_id(engine: Engine) -> None:
+    """Add `client_id` column and index to user_queries if missing (idempotent)."""
+    dialect = engine.dialect.name
+    with engine.begin() as conn:
+        column_exists = False
+
+        if dialect == "sqlite":
+            res = conn.execute(text("PRAGMA table_info('user_queries')")).fetchall()
+            for row in res:
+                # row format: cid, name, type, notnull, dflt_value, pk
+                if len(row) >= 2 and str(row[1]) == "client_id":
+                    column_exists = True
+                    break
+        else:
+            # Postgres or others
+            check_sql = text(
+                """
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_name = 'user_queries' AND column_name = 'client_id'
+                """
+            )
+            column_exists = conn.execute(check_sql).first() is not None
+
+        if not column_exists:
+            # Add the column
+            conn.execute(text("ALTER TABLE user_queries ADD COLUMN client_id VARCHAR(128)"))
+
+        # Ensure index exists (use the default SQLAlchemy naming convention)
+        if dialect == "sqlite":
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_user_queries_client_id ON user_queries (client_id)"
+                )
+            )
+        elif dialect == "postgresql":
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_user_queries_client_id ON user_queries (client_id)"
+                )
+            )
+
+
 def run_all_migrations(engine: Engine) -> None:
-    """Run all pending migrations idempotently."""
+    """Run all pending migrations idempotently in declared order."""
     _ensure_schema_migrations_table(engine)
 
-    if not _is_applied(engine, MIGRATION_NAME):
-        dialect = engine.dialect.name
-        if dialect == "postgresql":
-            _migrate_postgres_enum(engine)
-        else:
-            _migrate_sqlite(engine)
+    # Register migrations in order
+    if not any(name == "2025-08-08-error-event-enum" for name, _ in MIGRATIONS):
+        def _apply_error_event_enum(engine_: Engine) -> None:
+            if engine_.dialect.name == "postgresql":
+                _migrate_postgres_enum(engine_)
+            else:
+                _migrate_sqlite(engine_)
 
-        _mark_applied(engine, MIGRATION_NAME)
+        MIGRATIONS.append(("2025-08-08-error-event-enum", _apply_error_event_enum))
+
+    if not any(name == "2025-08-08-user-queries-add-client-id" for name, _ in MIGRATIONS):
+        MIGRATIONS.append(("2025-08-08-user-queries-add-client-id", _user_queries_add_client_id))
+
+    # Apply each migration if not already applied
+    for name, fn in MIGRATIONS:
+        if not _is_applied(engine, name):
+            fn(engine)
+            _mark_applied(engine, name)
 
 
