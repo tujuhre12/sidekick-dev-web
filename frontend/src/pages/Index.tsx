@@ -670,7 +670,7 @@ const Index = () => {
                   </div>
 
                   {/* Generate Button */}
-                  <div className="flex gap-3 flex-wrap">
+                  <div className="flex gap-3 flex-wrap justify-center sm:justify-start">
                     <Button
                       onClick={isGenerationComplete ? handleGenerateAnother : handleGenerate}
                       disabled={isGenerating}
