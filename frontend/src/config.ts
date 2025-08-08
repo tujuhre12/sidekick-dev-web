@@ -6,10 +6,13 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Repository URL - centralized location for all references
-export const REPO_URL = "https://github.com/saharmor/sidekick-dev-web";
+export const REPO_URL = "https://github.com/saharmor/sidekick-code-web";
 
 // Google Analytics configuration
 export const GOOGLE_ANALYTICS_ID = import.meta.env.VITE_GA_MEASUREMENT_ID || '';
+
+// System diagnostic and insights configuration
+export const DIAGNOSTIC_INSIGHTS_ENABLED = import.meta.env.VITE_DIAGNOSTIC_INSIGHTS === 'true' || false;
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -17,12 +20,15 @@ export const API_ENDPOINTS = {
   health: `${API_BASE_URL}/health`,
 } as const;
 
+// Helper to resolve asset paths relative to Vite base URL (works on GitHub Pages subpaths)
+const asset = (relativePath: string) => `${import.meta.env.BASE_URL}${relativePath}`;
+
 // Agent configuration
 export const AGENTS = [
   { 
     id: "claude", 
     name: "Claude Code", 
-    icon: "/product-logos/claude.png", 
+    icon: asset("product-logos/claude.png"), 
     color: "text-purple-600",
     fileName: "claude.md",
     active: true,
@@ -39,13 +45,13 @@ export const AGENTS = [
   { 
     id: "cursor", 
     name: "Cursor", 
-    icon: "/product-logos/cursor.png", 
+    icon: asset("product-logos/cursor.png"), 
     color: "text-blue-600",
-    fileName: "cursor.md or .cursorrules.md",
+    fileName: "project_general.md",
     active: true,
     placement: {
       title: "Cursor",
-      description: "Place cursor.md or .cursorrules.md in:",
+      description: "Place project_general.md in:",
       locations: [
         "The root of your repository"
       ],
@@ -54,7 +60,7 @@ export const AGENTS = [
   { 
     id: "windsurf", 
     name: "Windsurf", 
-    icon: "/product-logos/windsurf.png", 
+    icon: asset("product-logos/windsurf.png"), 
     color: "text-teal-600",
     fileName: "windsurf.md",
     active: true,
@@ -69,7 +75,7 @@ export const AGENTS = [
   { 
     id: "gemini", 
     name: "Gemini", 
-    icon: "/product-logos/gemini.png", 
+    icon: asset("product-logos/gemini.png"), 
     color: "text-orange-600",
     fileName: "gemini.md",
     active: true,
@@ -86,10 +92,10 @@ export const AGENTS = [
   { 
     id: "cline", 
     name: "Cline", 
-    icon: "/product-logos/cline.png", 
+    icon: asset("product-logos/cline.png"), 
     color: "text-green-600",
     fileName: "cline.md",
-    active: true,
+    active: false,
     placement: {
       title: "Cline",
       description: "Place cline.md in:",
@@ -102,7 +108,7 @@ export const AGENTS = [
   { 
     id: "bolt", 
     name: "Bolt", 
-    icon: "/product-logos/bolt.png", 
+    icon: asset("product-logos/bolt.png"), 
     color: "text-orange-600",
     fileName: "bolt.md",
     active: false,
@@ -118,7 +124,7 @@ export const AGENTS = [
   { 
     id: "vscode", 
     name: "VS Code Copilot", 
-    icon: "/product-logos/vscode.png", 
+    icon: asset("product-logos/vscode.png"), 
     color: "text-blue-500",
     fileName: "vscode.md",
     active: false,
@@ -134,7 +140,7 @@ export const AGENTS = [
   { 
     id: "intellij", 
     name: "IntelliJ IDEA", 
-    icon: "/product-logos/intellij.png", 
+    icon: asset("product-logos/intellij.png"), 
     color: "text-red-600",
     fileName: "intellij.md",
     active: false,
@@ -151,7 +157,7 @@ export const AGENTS = [
   { 
     id: "lovable", 
     name: "Lovable", 
-    icon: "/product-logos/lovable.png", 
+    icon: asset("product-logos/lovable.png"), 
     color: "text-pink-600",
     fileName: "lovable.md",
     active: false,

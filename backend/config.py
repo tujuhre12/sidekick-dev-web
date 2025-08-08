@@ -4,7 +4,7 @@ import os
 from typing import Dict
 
 # Repository URL - centralized location for all references
-REPO_URL = "https://github.com/saharmor/sidekick-dev-web"
+REPO_URL = "https://github.com/saharmor/sidekick-code-web"
 
 # Agent configuration mapping
 AGENT_CONFIG: Dict[str, Dict[str, str]] = {

@@ -23,16 +23,12 @@ The only requirement is having Node.js & npm installed - [install with nvm](http
 Follow these steps:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Clone
+git clone https://github.com/saharmor/sidekick-code-web.git
+cd sidekick-code-web/frontend
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+# Install deps and run
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
@@ -62,7 +58,7 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/0a1c21d3-a0fe-4ad4-bc9a-f1acd806dc68) and click on Share -> Publish.
+For GitHub Pages, see the repository `DEPLOYMENT.md`. For custom hosting, run `npm run build` and serve the `dist/` directory.
 
 ## Can I connect a custom domain to my Lovable project?
 

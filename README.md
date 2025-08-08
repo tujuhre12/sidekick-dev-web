@@ -17,8 +17,8 @@ Automatically generate high-quality markdown context files for AI coding agents 
 
 ```bash
 # Clone and start both frontend and backend
-git clone https://github.com/saharmor/sidekick-dev-web.git
-cd sidekick-dev-web
+git clone https://github.com/saharmor/sidekick-code-web.git
+cd sidekick-code-web
 ./start-dev.sh
 ```
 
@@ -92,7 +92,7 @@ Generates context files for a GitHub repository.
 
 Health check endpoint for monitoring backend status.
 
-## Testing
+## Local Testing
 
 **Backend API:**
 ```bash
@@ -116,8 +116,9 @@ curl -X POST http://localhost:8000/api/generate \
 **Frontend (GitHub Pages):**
 ```bash
 cd frontend
-npm run build
-# Deploy dist/ folder to GitHub Pages
+npm run build:prod
+# If deploying to GitHub Pages, ensure Vite base is set for subpath
+# Site URL will be https://<user>.github.io/sidekick-code-web/
 ```
 
 **Backend (Render/Railway):**
@@ -170,6 +171,7 @@ Each markdown file provides comprehensive project context including:
 - Pydantic for validation
 - Requests for HTTP calls
 - Python-dotenv for configuration
+ - SQLAlchemy + psycopg for optional Postgres analytics
 
 ## Contributing
 
@@ -191,4 +193,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-Built by [Sahar Mor](https://github.com/saharmor) | [Clone on GitHub](https://github.com/saharmor/sidekick-dev-web)
+Built by [Sahar Mor](https://github.com/saharmor) | [Clone on GitHub](https://github.com/saharmor/sidekick-code-web)
