@@ -512,22 +512,24 @@ const Index = () => {
   const showPlacementGuide = (isGenerating || isGenerationComplete) && selectedAgents.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-dreamy flex flex-col items-center justify-center px-4 py-8 md:px-6 lg:px-8">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-dreamy flex flex-col items-center justify-center px-5 py-8 md:px-6 lg:px-8">
       <CookieBanner />
       {/* Main Content Container - Centered */}
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-6xl">
         {/* Hero Section */}
-        <div className="text-center mb-4 animate-float">
-          <div className="flex items-center justify-center gap-4 mb-5">
-            <Sparkles className="w-10 h-10 text-primary" />
-            <h1 className="text-5xl md:text-6xl font-bold font-press-start bg-clip-text text-transparent pixel-glow gradient-hero-warmer hero-text-shadow">
-              Sidekick Dev
-            </h1>
+          <div className="text-center mb-4 mt-4 animate-float">
+            <div className="flex justify-center mb-3">
+              <div className="relative inline-block pl-10 sm:pl-14 md:pl-16">
+                <h1 className="hero-title whitespace-nowrap font-bold font-press-start bg-clip-text text-transparent pixel-glow-compact word-tight gradient-hero-warmer hero-text-shadow">
+                  Sidekick Dev
+                </h1>
+                <Sparkles aria-hidden className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 text-primary" />
+              </div>
+            </div>
+            <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Automatically generate high-quality markdown context files for your coding agents to enhance their performance.
+            </p>
           </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Automatically generate high-quality markdown context files for your coding agents to enhance their performance.
-          </p>
-        </div>
 
         {/* Powered by DeepWiki */}
         <div className="text-center mb-10">
@@ -899,7 +901,6 @@ const Index = () => {
 
       {/* Footer - Always at bottom */}
       <div className="text-center mt-8 text-sm text-muted-foreground">
-        <p>
           <div className="flex items-center justify-center space-x-4">
             <div>
             Ideas? <a href="https://x.com/theaievangelist" className="text-primary" target="_blank" rel="noopener noreferrer">Reach out!</a>
@@ -912,7 +913,6 @@ const Index = () => {
               <span>Clone me!</span>
             </a>
           </div>
-        </p>
       </div>
     </div>
   );
