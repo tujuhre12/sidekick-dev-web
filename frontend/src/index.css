@@ -44,7 +44,7 @@
     --radius: 1rem;
 
     /* Subtle, readable gradients */
-    --gradient-dreamy: linear-gradient(135deg, hsl(200 50% 85%) 0%, hsl(220 40% 90%) 25%, hsl(185 30% 92%) 50%, hsl(200 35% 88%) 75%, hsl(210 40% 85%) 100%);
+    --gradient-dreamy: linear-gradient(135deg, hsl(200 50% 85%) 0%, hsl(220 40% 90%) 25%, hsla(185, 59%, 77%, 0.677) 50%, hsl(200 35% 88%) 75%, hsl(210 40% 85%) 100%);
     --gradient-soft: linear-gradient(180deg, hsl(330 45% 94%) 0%, hsl(320 50% 92%) 25%, hsl(295 40% 93%) 50%, hsl(275 45% 91%) 75%, hsl(260 35% 93%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.95) 0%, hsl(200 15% 98% / 0.9) 100%);
 
@@ -162,6 +162,26 @@
     animation: fade-in-gentle 1.5s ease-in-out infinite;
   }
 }
+@layer utilities {
+  .font-press-start {
+    font-family: 'Press Start 2P', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji';
+  }
+  .pixel-glow {
+    letter-spacing: 0.08em;
+    text-shadow:
+      0 0 6px hsl(var(--primary) / 0.35),
+      0 0 14px hsl(var(--accent) / 0.25),
+      0 0 22px hsl(var(--secondary) / 0.2);
+  }
+  .gradient-hero-warmer {
+    background-image: linear-gradient(
+      90deg,
+      hsl(var(--primary)) 0%,
+      hwb(24 2% 2%) 50%,
+      hsl(var(--secondary)) 100%
+    );
+  }
+}
 
 @keyframes float {
   0%, 100% {
@@ -213,5 +233,14 @@
   100% {
     opacity: 0.3;
     transform: scale(0.95);
+  }
+}
+
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 100% {
+    opacity: 1;
+  }
+  20%, 22% {
+    opacity: 0.6;
   }
 }

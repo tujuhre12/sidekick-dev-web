@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Download, Github, Sparkles, Loader2, CheckCircle, Code, Search, Zap, Brain, Package, FileText, FolderOpen, AlertTriangle, Play, ArrowRight } from "lucide-react";
 import { API_ENDPOINTS, AGENTS, REPO_URL, type AgentId } from "@/config";
+import { trackClick, trackEvent } from "@/hooks/use-analytics";
 
 interface ProgressStep {
   id: string;
@@ -145,6 +146,7 @@ const Index = () => {
   };
 
   const handleTryDemo = async () => {
+    trackClick('try_demo');
     // Reset any previous state
     resetComponentState();
     
@@ -216,6 +218,11 @@ const Index = () => {
             deepwikiUrl: errorData.deepwiki_url,
             repoType: errorData.repo_type
           });
+
+          // Track repository error type
+          if (errorData.repo_type === 'private' || errorData.repo_type === 'not_indexed') {
+            trackEvent('repository_error', { repo_type: errorData.repo_type, source: 'try_demo' });
+          }
           
           // Reset generation state but keep the error visible
           setIsGenerating(false);
@@ -324,6 +331,10 @@ const Index = () => {
   };
 
   const handleGenerate = async () => {
+    trackClick('generate_and_download', {
+      selected_agents_count: selectedAgents.length,
+      has_github_url: Boolean(githubUrl.trim())
+    });
     if (!githubUrl.trim()) {
       toast({
         title: "GitHub URL Required",
@@ -380,6 +391,11 @@ const Index = () => {
             deepwikiUrl: errorData.deepwiki_url,
             repoType: errorData.repo_type
           });
+
+          // Track repository error type
+          if (errorData.repo_type === 'private' || errorData.repo_type === 'not_indexed') {
+            trackEvent('repository_error', { repo_type: errorData.repo_type, source: 'generate' });
+          }
           
           // Reset generation state but keep the error visible
           setIsGenerating(false);
@@ -495,7 +511,7 @@ const Index = () => {
         <div className="text-center mb-4 animate-float">
           <div className="flex items-center justify-center gap-4 mb-5">
             <Sparkles className="w-10 h-10 text-primary" />
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-6xl font-bold font-press-start bg-clip-text text-transparent pixel-glow animate-flicker-soft gradient-hero-warmer">
               Sidekick Dev
             </h1>
           </div>
@@ -511,6 +527,7 @@ const Index = () => {
             target="_blank" 
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-1 transition-transform duration-300 hover:translate-x-0.5"
+            onClick={() => trackClick('powered_by_deepwiki')}
           >
             <svg 
               className="size-4 transform transition-transform duration-700 group-hover:rotate-180 [&_path]:stroke-0" 
@@ -815,6 +832,7 @@ const Index = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center space-x-1 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
+                                onClick={() => trackClick('deepwiki_follow_up', { username, repo })}
                               >
                                 DeepWiki{' '}
                                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -875,10 +893,10 @@ const Index = () => {
         <p>
           <div className="flex items-center justify-center space-x-4">
             <div>
-            Ideas? <a href="https://x.com/theaievangelist" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Reach out!</a>
+            Ideas? <a href="https://x.com/theaievangelist" className="text-primary" target="_blank" rel="noopener noreferrer">Reach out!</a>
             </div>            
             <span className="text-muted-foreground">|</span>
-            <a href={REPO_URL} className="flex items-center space-x-2 text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+            <a href={REPO_URL} className="flex items-center space-x-2 text-primary" target="_blank" rel="noopener noreferrer">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
               </svg>
