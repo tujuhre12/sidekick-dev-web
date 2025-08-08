@@ -196,5 +196,5 @@ Generated using [Sidekick Dev]({REPO_URL}), your coding agent sidekick.
 """
 
 # Environment variables
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000,http://localhost:8081,https://saharmor.github.io,https://sidekickdev.com").split(",")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000,http://localhost:8081,http://localhost:8080,https://saharmor.github.io,https://sidekickdev.com").split(",")
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"

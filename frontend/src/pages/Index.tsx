@@ -780,7 +780,7 @@ const Index = () => {
 
                   <p className={`text-sm mb-4 ${isGenerationComplete ? 'text-green-700' : 'text-gray-700'}`}>
                     {isGenerationComplete 
-                      ? "Your context files have been downloaded! Place them in the correct locations for your selected agents (see below):" 
+                      ? "Context files downloaded! Place them in the correct locations (see below):" 
                       : "Once your context files are ready, place them in the correct locations for your selected agents:"}
                   </p>
 
@@ -875,7 +875,7 @@ const Index = () => {
         <p>
           <div className="flex items-center justify-center space-x-4">
             <div>
-            Built by <a href="https://github.com/saharmor" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Sahar Mor</a>  
+            Ideas? <a href="https://x.com/theaievangelist" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Reach out!</a>
             </div>            
             <span className="text-muted-foreground">|</span>
             <a href={REPO_URL} className="flex items-center space-x-2 text-primary hover:underline" target="_blank" rel="noopener noreferrer">
