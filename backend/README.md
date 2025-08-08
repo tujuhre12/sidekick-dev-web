@@ -32,6 +32,10 @@ cp .env.example .env
 # Edit configuration as needed
 # DEBUG=true for development, false for production
 # CORS_ORIGINS=comma-separated list of allowed origins
+# DATABASE_URL=sqlite:///./data/app.db (default)
+# For Render Postgres, set this to your Render connection string (Internal DB URL)
+# e.g. DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DBNAME
+# The app auto-upgrades to postgresql+psycopg and enforces sslmode=require if missing
 ```
 
 ### Running the Server
@@ -148,6 +152,13 @@ pip install -r backend/requirements.txt
 ```bash
 cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
+
+#### Render Postgres setup
+
+- Create a Render PostgreSQL instance.
+- In your Backend Service on Render, add env var `DATABASE_URL` with the Internal Database URL.
+- You can use either `postgres://` or `postgresql://`; the app normalizes to `postgresql+psycopg://` and adds `sslmode=require` if not provided.
+- Locally you can omit `DATABASE_URL` to use SQLite at `./data/app.db`.
 
 ### Docker
 

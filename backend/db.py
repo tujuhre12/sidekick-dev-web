@@ -4,9 +4,50 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from typing import Generator
 import os
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
+
+
+def _normalize_database_url(raw_url: str) -> str:
+    """Normalize database URL for SQLAlchemy.
+
+    - Defaults to local SQLite if no URL provided
+    - Upgrades "postgres://" or "postgresql://" to "postgresql+psycopg://"
+    - Ensures sslmode=require for Postgres if not specified (Render best practice)
+    """
+    if not raw_url:
+        return "sqlite:///./data/app.db"
+
+    url = raw_url.strip()
+
+    # Normalize postgres scheme and specify psycopg (v3) driver explicitly
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif url.startswith("postgresql://") and "+psycopg" not in url:
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+    # Add sslmode=require if using Postgres and it's not already provided
+    if url.startswith("postgresql+psycopg://"):
+        parsed = urlparse(url)
+        query_items = dict(parse_qsl(parsed.query))
+        if "sslmode" not in query_items:
+            query_items["sslmode"] = "require"
+            new_query = urlencode(query_items)
+            url = urlunparse(
+                (
+                    parsed.scheme,
+                    parsed.netloc,
+                    parsed.path,
+                    parsed.params,
+                    new_query,
+                    parsed.fragment,
+                )
+            )
+
+    return url
+
 
 # Default to a local SQLite database inside the repository under backend/data
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/app.db")
+DATABASE_URL = _normalize_database_url(os.getenv("DATABASE_URL"))
 
 # For SQLite we need check_same_thread=False for multi-threaded FastAPI
 engine = create_engine(
