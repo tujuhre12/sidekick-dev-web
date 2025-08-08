@@ -388,7 +388,7 @@ class DeepWikiClient:
                         if repo_type == "private":
                             message = "This repository requires a DeepWiki account to access."
                         elif repo_type == "not_indexed":
-                            message = f"This repository hasn't been indexed yet. Trigger indexing on and try again in about 10 minutes."
+                            message = f"This repository hasn't been indexed yet. Trigger indexing by opening the repository on DeepWiki and try again in about 10 minutes."
                         else:
                             message = f"Repository not found. Visit {deepwiki_url} to index it and try again in 5 minutes."
                         

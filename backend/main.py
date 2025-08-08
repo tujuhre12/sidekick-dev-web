@@ -112,7 +112,12 @@ async def generate_context_files(request: GenerateRequest, http_request: Request
                 # Record error event in DB if possible
                 try:
                     if user_query_record is not None:
-                        event_type = "Private repository" if error.get("repo_type") == "private" else "Repository not index"
+                        # Persist canonical enum labels using model enum
+                        event_type = (
+                            ErrorEvent.ErrorEventType.PRIVATE_REPOSITORY
+                            if error.get("repo_type") == "private"
+                            else ErrorEvent.ErrorEventType.REPOSITORY_NOT_INDEXED
+                        )
                         error_event = ErrorEvent(
                             event_type=event_type,
                             repository_url=request.github_url,

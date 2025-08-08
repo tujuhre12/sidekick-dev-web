@@ -21,7 +21,7 @@ const CookieBanner = () => {
       <div className="rounded-lg border bg-white shadow-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div className="text-sm text-foreground">
           We use cookies for analytics to improve Sidekick Dev.
-          Read our <a href="/privacy" className="text-primary underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+          Read our <a href="/privacy" className="text-primary underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
         </div>
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={() => { setAnalyticsConsent(false); setVisible(false); }}>Decline</Button>

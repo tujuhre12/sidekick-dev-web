@@ -70,6 +70,16 @@ def init_db() -> None:
     import db_models  # noqa: F401 - ensure models are imported
     Base.metadata.create_all(bind=engine)
 
+    # Run code-driven migrations
+    try:
+        from migrations import run_all_migrations
+
+        run_all_migrations(engine)
+    except Exception as e:
+        # Do not prevent app startup if migrations fail; log and continue
+        # In production you may want to fail fast instead.
+        print(f"[DB] Migration step failed: {e}")
+
 
 def get_db() -> Generator:
     """Yield a database session for request scope."""

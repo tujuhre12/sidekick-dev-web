@@ -1,6 +1,7 @@
 """SQLAlchemy ORM models."""
 
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from enum import Enum as PyEnum
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Enum as SAEnum
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from db import Base
@@ -36,8 +37,19 @@ class ErrorEvent(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
-    # Event types expected: "Repository not index", "Private repository"
-    event_type = Column(String(64), nullable=False, index=True)
+    class ErrorEventType(str, PyEnum):
+        REPOSITORY_NOT_INDEXED = "repository_not_indexed"
+        PRIVATE_REPOSITORY = "private_repository"
+
+    event_type = Column(
+        SAEnum(
+            ErrorEventType,  # type: ignore[name-defined]
+            name="error_event_type",
+            native_enum=True,
+        ),
+        nullable=False,
+        index=True,
+    )
     repository_url = Column(String(512), nullable=False)
     user_query_id = Column(Integer, ForeignKey("user_queries.id", ondelete="CASCADE"), nullable=False, index=True)
 
