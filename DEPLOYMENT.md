@@ -19,7 +19,7 @@ The frontend is configured to deploy automatically to GitHub Pages when changes 
 3. **Deploy:**
    - Push your changes to the main branch
    - GitHub Actions will automatically build and deploy your frontend
-   - Your site will be available at: `https://your-username.github.io/sidekick-dev-web/`
+   - Your site will be available at: `https://your-username.github.io/sidekick-code-web/`
 
 ### Local Testing
 

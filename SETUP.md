@@ -14,8 +14,8 @@ This guide will help you set up the Sidekick Dev application for development or 
 
 ```bash
 # Clone the repository
-git clone https://github.com/saharmor/sidekick-dev-web.git
-cd sidekick-dev-web
+git clone https://github.com/saharmor/sidekick-code-web.git
+cd sidekick-code-web
 
 # Run the setup script (starts both frontend and backend)
 ./start-dev.sh
@@ -95,7 +95,7 @@ python test_api.py
 ## 📁 Project Structure
 
 ```
-sidekick-dev-web/
+sidekick-code-web/
 ├── backend/                 # FastAPI backend
 │   ├── main.py             # Main FastAPI application
 │   ├── models.py           # Pydantic models
