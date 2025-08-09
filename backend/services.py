@@ -3,6 +3,7 @@
 import io
 import zipfile
 from typing import List, Dict, Tuple
+import threading
 from deepwiki_client import DeepWikiClient, DeepWikiRepositoryNotFoundError
 from config import AGENT_CONFIG, UNIVERSAL_PROMPT_TEMPLATE, FOOTER_TEMPLATE
 import logging
@@ -11,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 # Global DeepWiki client instance - initialized once at startup
 _global_deepwiki_client: DeepWikiClient = None
+# Serialize access to the shared DeepWiki client to avoid concurrent session usage
+_deepwiki_client_lock = threading.Lock()
 
 def get_deepwiki_client() -> DeepWikiClient:
     """Get the global DeepWiki client instance."""
@@ -78,7 +81,10 @@ def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tupl
         
         # Query DeepWiki with the universal prompt
         logger.info(f"Generating context for repository: {github_url}")
-        deepwiki_response = deepwiki_client.query(github_url, UNIVERSAL_PROMPT_TEMPLATE)
+        # Some MCP servers do not support concurrent requests per session.
+        # Since we reuse a single client (and session) per process, serialize calls.
+        with _deepwiki_client_lock:
+            deepwiki_response = deepwiki_client.query(github_url, UNIVERSAL_PROMPT_TEMPLATE)
         
         # Check for errors in response
         if deepwiki_response.raw_response.startswith("DeepWiki error:") or deepwiki_response.raw_response.startswith("Error"):
