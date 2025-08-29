@@ -4,7 +4,11 @@ import io
 import zipfile
 from typing import List, Dict, Tuple
 import threading
-from deepwiki_client import DeepWikiClient, DeepWikiRepositoryNotFoundError
+from deepwiki_client import (
+    DeepWikiClient,
+    DeepWikiRepositoryNotFoundError,
+    DeepWikiAPIError,
+)
 from config import AGENT_CONFIG, UNIVERSAL_PROMPT_TEMPLATE, FOOTER_TEMPLATE
 import logging
 
@@ -127,6 +131,18 @@ def generate_markdown_files(github_url: str, selected_agents: List[str]) -> Tupl
             "message": e.message,
             "deepwiki_url": e.deepwiki_url,
             "repo_type": e.repo_type
+        }
+        return {}, error_data, None
+    except DeepWikiAPIError as e:
+        # Friendly message for upstream/Cloudflare issues
+        logger.info(
+            f"DeepWiki upstream unavailable (status {getattr(e, 'status_code', 'unknown')}): {e.message}"
+        )
+        error_data = {
+            "error_type": "upstream_unavailable",
+            "type": "upstream_unavailable",
+            "message": "DeepWiki is temporarily unavailable. Please try again in a minute.",
+            "details": e.message,
         }
         return {}, error_data, None
     except Exception as e:

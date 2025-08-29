@@ -96,25 +96,60 @@ def _normalize_error_event_values(engine: Engine) -> None:
 def _migrate_postgres_enum(engine: Engine) -> None:
     """Create enum type and alter column in Postgres."""
     with engine.begin() as conn:
+        # Desired canonical enum values
+        desired_values = ["repository_not_indexed", "private_repository"]
+
         # Create type if it doesn't exist
         type_exists = conn.execute(
             text("SELECT 1 FROM pg_type WHERE typname = 'error_event_type'")
         ).first() is not None
         if not type_exists:
-            conn.execute(text("CREATE TYPE error_event_type AS ENUM ('repository_not_indexed', 'private_repository')"))
+            conn.execute(
+                text(
+                    "CREATE TYPE error_event_type AS ENUM ('repository_not_indexed', 'private_repository')"
+                )
+            )
+        else:
+            # Ensure the existing type has the needed labels
+            existing = conn.execute(
+                text(
+                    """
+                    SELECT enumlabel
+                    FROM pg_enum e
+                    JOIN pg_type t ON e.enumtypid = t.oid
+                    WHERE t.typname = 'error_event_type'
+                    """
+                )
+            ).fetchall()
+            existing_values = {row[0] for row in existing}
+            for value in desired_values:
+                if value not in existing_values:
+                    # Add any missing values (IF NOT EXISTS is available on modern Postgres)
+                    conn.execute(text(f"ALTER TYPE error_event_type ADD VALUE IF NOT EXISTS '{value}'"))
 
         # Ensure data is normalized before altering type
         _normalize_error_event_values(engine)
 
-        # Alter column to use enum type
-        conn.execute(
+        # If the column is already the desired enum type, skip altering
+        col_type = conn.execute(
             text(
                 """
-                ALTER TABLE error_events
-                ALTER COLUMN event_type TYPE error_event_type USING event_type::error_event_type
+                SELECT udt_name
+                FROM information_schema.columns
+                WHERE table_name = 'error_events' AND column_name = 'event_type'
                 """
             )
-        )
+        ).scalar()
+        if col_type != "error_event_type":
+            # Alter column to use enum type with safe cast
+            conn.execute(
+                text(
+                    """
+                    ALTER TABLE error_events
+                    ALTER COLUMN event_type TYPE error_event_type USING event_type::text::error_event_type
+                    """
+                )
+            )
 
 
 def _migrate_sqlite(engine: Engine) -> None:
