@@ -249,6 +249,20 @@ const Index = () => {
           setViewSearchUrl(null);
           
           return; // Don't continue processing or throw generic error
+        } else if (errorData.error_type === 'upstream_unavailable') {
+          // DeepWiki/Cloudflare worker outage
+          toast({
+            title: 'DeepWiki is temporarily unavailable',
+            description: 'Cloudflare Workers returned an error. Please try again in a minute.',
+            variant: 'destructive',
+          });
+          // Reset generation state
+          setIsGenerating(false);
+          setCurrentStep(0);
+          setIsBackendComplete(false);
+          setIsGenerationComplete(false);
+          setViewSearchUrl(null);
+          return;
         }
         
         throw new Error(errorData.error || 'Failed to generate files');
@@ -441,6 +455,20 @@ const Index = () => {
           setViewSearchUrl(null);
           
           return; // Don't continue processing or throw generic error
+        } else if (errorData.error_type === 'upstream_unavailable') {
+          // DeepWiki/Cloudflare worker outage
+          toast({
+            title: 'DeepWiki is temporarily unavailable',
+            description: 'Cloudflare Workers returned an error. Please try again in a minute.',
+            variant: 'destructive',
+          });
+          // Reset generation state
+          setIsGenerating(false);
+          setCurrentStep(0);
+          setIsBackendComplete(false);
+          setIsGenerationComplete(false);
+          setViewSearchUrl(null);
+          return;
         }
         
         throw new Error(errorData.error || 'Failed to generate files');

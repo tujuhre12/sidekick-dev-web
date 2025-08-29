@@ -143,6 +143,14 @@ async def generate_context_files(request: GenerateRequest, http_request: Request
                 except Exception as e:
                     logger.warning(f"Failed to persist error event: {e}")
                 raise HTTPException(status_code=404, detail=error_response.dict())
+            elif isinstance(error, dict) and error.get("type") == "upstream_unavailable":
+                # Surface upstream outage as 502 Bad Gateway
+                error_response = ErrorResponse(
+                    error=error["message"],
+                    details=error.get("details"),
+                    error_type="upstream_unavailable",
+                )
+                raise HTTPException(status_code=502, detail=error_response.dict())
             else:
                 # Regular error handling for other types of errors
                 raise HTTPException(status_code=400, detail=error)
