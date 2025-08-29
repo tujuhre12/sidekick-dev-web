@@ -3,6 +3,7 @@ import re
 from typing import Optional
 from dataclasses import dataclass
 import logging
+import time
 
 # Configure logging for debug output
 logging.basicConfig(level=logging.INFO)
@@ -140,6 +141,20 @@ def parse_sse_response(response_text: str) -> str:
     except Exception as e:
         debug_log(f"Error parsing SSE response: {str(e)}")
         return f"Error parsing SSE response: {str(e)}"
+
+
+def is_cloudflare_error_page(response_text: Optional[str]) -> bool:
+    """Detect common Cloudflare error page markers in an HTML response."""
+    if not response_text:
+        return False
+    lower = response_text.lower()
+    return (
+        "cf-error-code" in lower
+        or "cf-error-details" in lower
+        or "cloudflare" in lower and "worker" in lower
+        or "please enable cookies" in lower and "cloudflare" in lower
+        or "<!doctype html" in lower or "<html" in lower
+    )
 
 def extract_repository_url_from_error(error_message: str) -> Optional[str]:
     """
@@ -372,6 +387,14 @@ class DeepWikiClient:
                 if not tool_response.text.strip():
                     raise DeepWikiResponseError("Empty response from DeepWiki", raw_response="")
                 
+                # If we received an HTML error page (e.g., Cloudflare Worker 1101), surface a clean API error
+                if is_cloudflare_error_page(tool_response.text):
+                    raise DeepWikiAPIError(
+                        "DeepWiki upstream returned an HTML error page (Cloudflare)",
+                        status_code=502,
+                        raw_response=tool_response.text,
+                    )
+
                 # Parse the SSE response
                 text_content = parse_sse_response(tool_response.text)
                 
@@ -414,7 +437,30 @@ class DeepWikiClient:
                 cleaned_response = clean_deepwiki_response(text_content)
                 return DeepWikiResponse(raw_response=text_content, response=cleaned_response, view_search_url=view_url)
             else:
-                error_msg = f"DeepWiki API returned error status: {tool_response.text}"
+                # If this is a Cloudflare/HTML error, wrap it clearly and consider a brief retry once
+                if is_cloudflare_error_page(tool_response.text) or tool_response.status_code >= 500:
+                    debug_log(
+                        f"DeepWiki upstream issue (status {tool_response.status_code}). Retrying once..."
+                    )
+                    time.sleep(1)
+                    retry_response = requests.post(
+                        self.mcp_url,
+                        json=tool_payload,
+                        headers={
+                            "Content-Type": "application/json",
+                            "Accept": "application/json, text/event-stream",
+                            "Mcp-Session-Id": self.session_id,
+                        },
+                        timeout=300,
+                    )
+                    if retry_response.status_code == 200 and retry_response.text.strip() and not is_cloudflare_error_page(retry_response.text):
+                        text_content = parse_sse_response(retry_response.text)
+                        if text_content:
+                            view_url = extract_view_search_url(text_content)
+                            cleaned_response = clean_deepwiki_response(text_content)
+                            return DeepWikiResponse(raw_response=text_content, response=cleaned_response, view_search_url=view_url)
+
+                error_msg = "DeepWiki API returned error status"
                 debug_log(f"DeepWiki API Error {tool_response.status_code}: {tool_response.text}")
                 raise DeepWikiAPIError(error_msg, status_code=tool_response.status_code, raw_response=tool_response.text)
                 
