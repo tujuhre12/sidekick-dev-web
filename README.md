@@ -90,3 +90,8 @@ Each markdown file provides comprehensive project context including:
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
+
+
+## Connect
+
+Built by [Sahar Mor](https://www.linkedin.com/in/sahar-mor/) • Follow [@theaievangelist](https://x.com/theaievangelist) • [Stay updated on AI](http://aitidbits.ai/)
